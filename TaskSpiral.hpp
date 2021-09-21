@@ -17,7 +17,7 @@ public:
 
 		if(!FileExists(_name+".cfg"))
 		{
-			Settings.Add(LineThick, "Толщина линии", GuiType::TEdit, 10);
+			Settings.Add(LineThick, "Толщина линии", GuiType::TEdit, 12);
 			Settings.Add(TrialMaxCount, "Кол. триалов", GuiType::TEdit, 2);
 			Settings.Add(SparalRadius, "Радиус спирали", GuiType::TEdit, 18);
 			Settings.Add(LineColor, "Цвет линии", GuiType::TComboColorBox, (int)0xFF008000);
