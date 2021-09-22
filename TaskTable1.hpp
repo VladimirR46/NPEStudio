@@ -1,7 +1,7 @@
 #ifndef TASKTABLE1
 #define TASKTABLE1
 
-#include "TaskBase.hpp"
+#include "TaskBase.h"
 
 class Task1 : public TaskBase
 {

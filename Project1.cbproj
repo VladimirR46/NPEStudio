@@ -82,8 +82,8 @@
         <AllPackageLibs>rtl.lib;fmx.lib;vcl.lib</AllPackageLibs>
         <_TCHARMapping>wchar_t</_TCHARMapping>
         <Multithreaded>true</Multithreaded>
-        <IncludePath>..\NPExperimentArtem\;E:\NeuroLab\Projects\NPEStudio\;$(IncludePath)</IncludePath>
-        <ILINK_LibraryPath>..\NPExperimentArtem\;E:\NeuroLab\Projects\NPEStudio\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <IncludePath>E:\NeuroLab\Projects\NPEStudio\;$(IncludePath)</IncludePath>
+        <ILINK_LibraryPath>E:\NeuroLab\Projects\NPEStudio\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <SanitizedProjectName>Project1</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
@@ -146,8 +146,8 @@
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <BCC_GenerateLSPLog>true</BCC_GenerateLSPLog>
         <BCC_GenerateInOutFiles>true</BCC_GenerateInOutFiles>
-        <VerInfo_Build>3</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.3;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>4</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.4;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -178,9 +178,10 @@
         <None Include="SettingsBase.hpp">
             <BuildOrder>8</BuildOrder>
         </None>
-        <None Include="TaskBase.hpp">
-            <BuildOrder>4</BuildOrder>
-        </None>
+        <CppCompile Include="TaskBase.cpp">
+            <DependentOn>TaskBase.h</DependentOn>
+            <BuildOrder>9</BuildOrder>
+        </CppCompile>
         <None Include="TaskSpiral.hpp">
             <BuildOrder>5</BuildOrder>
         </None>

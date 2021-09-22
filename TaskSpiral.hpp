@@ -1,7 +1,7 @@
 ﻿#ifndef TASKSPIRAL
 #define TASKSPIRAL
 
-#include "TaskBase.hpp"
+#include "TaskBase.h"
 #include "windows.h"
 //#include "mmsystem.h"
 #include <memory>
