@@ -17,10 +17,12 @@ public:
 
 		if(!FileExists(_name+".cfg"))
 		{
-			Settings.Add(LineThick, "Толщина линии", GuiType::TEdit, 12);
+			Settings.Add(LineThick, "Толщина ведомой линии", GuiType::TEdit, 12);
 			Settings.Add(TrialMaxCount, "Кол. триалов", GuiType::TEdit, 2);
 			Settings.Add(SparalRadius, "Радиус спирали", GuiType::TEdit, 18);
-			Settings.Add(LineColor, "Цвет линии", GuiType::TComboColorBox, (int)0xFF008000);
+			Settings.Add(LineColor, "Цвет ведомой линии", GuiType::TComboColorBox, TAlphaColorRec::Lime);
+			Settings.Add(StartPointColor, "Цвет точки начала", GuiType::TComboColorBox, TAlphaColorRec::Red);
+            Settings.Add(SpiralColor, "Цвет спирали", GuiType::TComboColorBox, TAlphaColorRec::White);
 			Settings.save(_name+".cfg");
 		}
 		else
@@ -59,7 +61,9 @@ public:
         LineThick,
         TrialMaxCount,
         SparalRadius,
-		LineColor
+		LineColor,
+		StartPointColor,
+        SpiralColor
     };
     // --------------------------------------------------------------------------
     bool Finished()
@@ -158,7 +162,7 @@ public:
     // --------------------------------------------------------------------------
     void DrawPoints()
     {
-        DrawCircle(TAlphaColorRec::Red, 12, Spiral.StartPoint);
+        DrawCircle(Settings.get<int>(StartPointColor), 12, Spiral.StartPoint);
         DrawCircle(TAlphaColorRec::White, 12, Spiral.FinalPoint);
     }
 
@@ -183,7 +187,7 @@ public:
             TPointF p2(Spiral.x2, Spiral.y2);
             Bitmap->Canvas->BeginScene();
             Bitmap->Canvas->Stroke->Thickness = 10;
-            Bitmap->Canvas->Stroke->Color = claWhite;
+            Bitmap->Canvas->Stroke->Color = Settings.get<int>(SpiralColor);
             Bitmap->Canvas->Stroke->Cap = TStrokeCap::Round;
             // Bitmap->Canvas->Stroke->Kind = TBrushKind::Solid;
             // Bitmap->Canvas->Stroke->Dash = TStrokeDash::Solid;

@@ -54,7 +54,7 @@ void __fastcall TForm3::FormShow(TObject* Sender)
 			TComboColorBox* colorBox = new TComboColorBox(item);
             colorBox->Parent = item;
             colorBox->Align = TAlignLayout::VertCenter;
-			colorBox->Color = TAlphaColor(it->second.get<int>());
+			colorBox->Color = TAlphaColor(it->second.get<unsigned int>());
 			object[i] = colorBox;
 		}
 
