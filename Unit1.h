@@ -16,6 +16,10 @@
 #include <FMX.StdCtrls.hpp>
 #include <FMX.Types.hpp>
 #include <System.Classes.hpp>
+#include <FMX.ListView.Adapters.Base.hpp>
+#include <FMX.ListView.Appearances.hpp>
+#include <FMX.ListView.hpp>
+#include <FMX.ListView.Types.hpp>
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {

@@ -26,8 +26,10 @@ class TaskBase
 	void DrawPlus();
 	void DrawOneNumber(int number);
 	void DrawTable(int numbers[], int size);
+    void DrawText(AnsiString text, int size);
 
 	void ClearCanva();
+    void ClearCanva(TAlphaColor color);
 	unsigned int millis();
 	AnsiString GetTaskName();
 	SettingsBase* GetSettings();

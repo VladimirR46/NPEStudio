@@ -52,9 +52,9 @@ void __fastcall TForm2::FormShow(TObject* Sender)
     AnsiString timName = Now().FormatString("DD.MM.YYYY hh.nn.ss");
 
     Path = Path + " " + timName;
-    CreateDir(Path);
+	CreateDir(Path);
 
-    Tasks[CurrentTask]->InitTask(Path);
+	Tasks[CurrentTask]->InitTask(Path);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm2::Timer1Timer(TObject* Sender)

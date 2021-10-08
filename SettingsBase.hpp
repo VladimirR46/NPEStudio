@@ -13,7 +13,8 @@ using namespace std;
 
 enum class GuiType : int {
 	TEdit,
-	TComboColorBox
+	TComboColorBox,
+    TSwitch
 };
 
 struct TParameter {

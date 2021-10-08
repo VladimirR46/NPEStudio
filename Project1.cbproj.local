@@ -12,16 +12,16 @@
     <Transaction>1899.12.30 00:00:00.000.825,=C:\Users\Vladimir\Documents\Embarcadero\Studio\Projects\Project1PCH1.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.589,=C:\Users\Vladimir\Documents\Embarcadero\Studio\Projects\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.721,C:\Users\Vladimir\Documents\Embarcadero\Studio\Projects\Unit1.cpp=E:\NeuroLab\Projects\NPEStudio\Unit1.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.574,=E:\NeuroLab\Projects\NPExperimentArtem\TaskBase.hpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.492,E:\NeuroLab\Projects\NPExperimentArtem\TaskBase.hpp=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.574,=E:\NeuroLab\Projects\NPExperimentArtem\TaskBase.hpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.267,E:\NeuroLab\Projects\NPEStudio\Unit4.h=E:\NeuroLab\Projects\NPEStudio\TaskBase.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.531,=E:\NeuroLab\Projects\NPEStudio\Unit3.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.721,C:\Users\Vladimir\Documents\Embarcadero\Studio\Projects\Unit1.h=E:\NeuroLab\Projects\NPEStudio\Unit1.h</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.477,=E:\NeuroLab\Projects\NPEStudio\Unit4.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.267,E:\NeuroLab\Projects\NPEStudio\Unit4.cpp=E:\NeuroLab\Projects\NPEStudio\TaskBase.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.206,=E:\NeuroLab\Projects\NPEStudio\File1.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.553,E:\NeuroLab\Projects\NPEStudio\File1.h=E:\NeuroLab\Projects\NPEStudio\SettingsBase.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.700,=E:\NeuroLab\Projects\NPEStudio\File1.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.604,=E:\NeuroLab\Projects\NPEStudio\TaskTable1.hpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.267,E:\NeuroLab\Projects\NPEStudio\Unit4.cpp=E:\NeuroLab\Projects\NPEStudio\TaskBase.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.477,=E:\NeuroLab\Projects\NPEStudio\Unit4.cpp</Transaction>
   </Transactions>
 </BorlandProject>

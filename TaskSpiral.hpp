@@ -17,24 +17,29 @@ public:
 
 		if(!FileExists(_name+".cfg"))
 		{
-			Settings.Add(LineThick, "Толщина ведомой линии", GuiType::TEdit, 12);
+			Settings.Add(LineThick, "Толщина ведомой линии (mm)", GuiType::TEdit, 4);
+			Settings.Add(SpiralThick, "Толщина сипрали (mm)", GuiType::TEdit, 4);
 			Settings.Add(TrialMaxCount, "Кол. триалов", GuiType::TEdit, 2);
 			Settings.Add(SparalRadius, "Радиус спирали", GuiType::TEdit, 18);
 			Settings.Add(LineColor, "Цвет ведомой линии", GuiType::TComboColorBox, TAlphaColorRec::Lime);
 			Settings.Add(StartPointColor, "Цвет точки начала", GuiType::TComboColorBox, TAlphaColorRec::Red);
-            Settings.Add(SpiralColor, "Цвет спирали", GuiType::TComboColorBox, TAlphaColorRec::White);
+			Settings.Add(SpiralColor, "Цвет спирали", GuiType::TComboColorBox, TAlphaColorRec::White);
+            Settings.Add(EndPointColor, "Цвет точки конца", GuiType::TComboColorBox, TAlphaColorRec::White);
+			Settings.Add(MonitorDiagonal, "Диагональ монитора", GuiType::TEdit, 23.6);
+			Settings.Add(ShowResults, "Показывать результат", GuiType::TSwitch, 0);
 			Settings.save(_name+".cfg");
 		}
 		else
 		{
 			Settings.load(_name+".cfg");
-        }
+		}
 
     }
 
     enum Steps {
         SPIRAL = 0,
-        BLANK
+		BLANK,
+		RESULT
     };
 
     enum MotionDirection {
@@ -52,7 +57,7 @@ public:
         MotionDirection MoveDir;
         DrawDirection Dir;
         int x1, x2, y1, y2;
-        TPoint StartPoint;
+		TPoint StartPoint;
         TPoint FinalPoint;
     };
 
@@ -63,13 +68,24 @@ public:
         SparalRadius,
 		LineColor,
 		StartPointColor,
-        SpiralColor
+        EndPointColor,
+		SpiralColor,
+		MonitorDiagonal,
+		SpiralThick,
+		ShowResults
     };
     // --------------------------------------------------------------------------
     bool Finished()
     {
 		if (Settings.get<int>(TrialMaxCount) * 4 == CurrentTrial + 1) {
-            SaveLogFiles();
+			SaveLogFiles();
+
+			if(Settings.get<int>(ShowResults) == 1)
+			{
+				steps = RESULT;
+                return false;
+            }
+
             return true;
         }
         return false;
@@ -85,7 +101,7 @@ public:
         Bitmap->Canvas->Stroke->Color = color;
         // Bitmap->Canvas->Stroke->Kind = TBrushKind::Solid;
         // Bitmap->Canvas->Stroke->Dash = TStrokeDash::Solid;
-        Bitmap->Canvas->Stroke->Thickness = Settings.get<int>(LineThick);
+		Bitmap->Canvas->Stroke->Thickness = Settings.get<int>(LineThick) / pixelSize;
         Bitmap->Canvas->Stroke->Cap = TStrokeCap::Round;
         Bitmap->Canvas->DrawLine(PointClick, point, 1);
         Bitmap->Canvas->EndScene();
@@ -96,7 +112,7 @@ public:
     void UserMouseMove(int X, int Y)
     {
         if (MousePress && isLineDraw) {
-			DrawLine(Settings.get<int>(LineColor)/*TAlphaColorRec::Lime*/, TPointF(X, Y));
+			DrawLine(Settings.get<int>(LineColor), TPointF(X, Y));
 
             if (abs(Spiral.FinalPoint.x - X) < 8 && abs(Spiral.FinalPoint.y - Y) < 8) {
                 MousePress = false;
@@ -163,7 +179,7 @@ public:
     void DrawPoints()
     {
         DrawCircle(Settings.get<int>(StartPointColor), 12, Spiral.StartPoint);
-        DrawCircle(TAlphaColorRec::White, 12, Spiral.FinalPoint);
+        DrawCircle(Settings.get<int>(EndPointColor), 12, Spiral.FinalPoint);
     }
 
     // --------------------------------------------------------------------------
@@ -186,7 +202,7 @@ public:
 
             TPointF p2(Spiral.x2, Spiral.y2);
             Bitmap->Canvas->BeginScene();
-            Bitmap->Canvas->Stroke->Thickness = 10;
+            Bitmap->Canvas->Stroke->Thickness = Settings.get<int>(SpiralThick) / pixelSize;
             Bitmap->Canvas->Stroke->Color = Settings.get<int>(SpiralColor);
             Bitmap->Canvas->Stroke->Cap = TStrokeCap::Round;
             // Bitmap->Canvas->Stroke->Kind = TBrushKind::Solid;
@@ -239,7 +255,6 @@ public:
         CreateDir(LogPath + "\\Type 3");
         CreateDir(LogPath + "\\Type 4");
 
-        int ff = TrialSequence.size();
         for (int i = 0; i < TrialSequence.size(); i++) {
             TStringList* list = new TStringList;
             log_files.push_back(list);
@@ -265,7 +280,16 @@ public:
         CurrentTrial = -1;
 
         Timer->Interval = 2000;
-        Timer->Enabled = true;
+		Timer->Enabled = true;
+
+		// Calc Pixel Size
+		float D = Settings.get<float>(MonitorDiagonal) * 2.54;
+		float MonitorH = Form->Height;
+		float MonitorW = Form->Width;
+		float k =  (MonitorW / MonitorH)*(MonitorW / MonitorH);
+		float H = sqrt(D*D/(k+1));
+		float W = sqrt(D*D/(1/k+1));
+		pixelSize = H / MonitorH * 10; // mm
     }
 
     // --------------------------------------------------------------------------
@@ -293,6 +317,10 @@ public:
             DrawSpiral();
             DrawPoints();
             Timer->Enabled = false;
+		} else if (steps == RESULT) {
+           ClearCanva(TAlphaColorRec::White);
+           DrawText("Результаты!", 150);
+
         }
 
         isLineDraw = false;
@@ -311,7 +339,8 @@ public:
 private:
     Steps steps;
     bool MousePress;
-    bool isLineDraw;
+	bool isLineDraw;
+	float pixelSize;
 
     TSpiral Spiral;
     TPointF PointClick;

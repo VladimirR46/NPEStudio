@@ -141,13 +141,13 @@
         <BCC_UseClassicCompiler>false</BCC_UseClassicCompiler>
         <BCC_EnableLSPIndexing>true</BCC_EnableLSPIndexing>
         <BCC_EnableLSPIndexingOnChange>true</BCC_EnableLSPIndexingOnChange>
-        <BCC_NumberOfIndexingThreads>6</BCC_NumberOfIndexingThreads>
+        <BCC_NumberOfIndexingThreads>2</BCC_NumberOfIndexingThreads>
         <BCC_ShowLSPMessages>true</BCC_ShowLSPMessages>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <BCC_GenerateLSPLog>true</BCC_GenerateLSPLog>
         <BCC_GenerateInOutFiles>true</BCC_GenerateInOutFiles>
-        <VerInfo_Build>4</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.4;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>7</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.7;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -179,13 +179,16 @@
             <BuildOrder>8</BuildOrder>
         </None>
         <CppCompile Include="TaskBase.cpp">
+            <VirtualFolder>{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}</VirtualFolder>
             <DependentOn>TaskBase.h</DependentOn>
             <BuildOrder>9</BuildOrder>
         </CppCompile>
         <None Include="TaskSpiral.hpp">
+            <VirtualFolder>{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}</VirtualFolder>
             <BuildOrder>5</BuildOrder>
         </None>
         <None Include="TaskTable1.hpp">
+            <VirtualFolder>{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}</VirtualFolder>
             <BuildOrder>7</BuildOrder>
         </None>
         <CppCompile Include="Unit1.cpp">
@@ -239,6 +242,9 @@
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcbofficexp280.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
                 </Excluded_Packages>
+                <VFOLDERS>
+                    <VFOLDER ID="{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}" name="Tasks"/>
+                </VFOLDERS>
             </CPlusPlusBuilder.Personality>
             <Deployment Version="3">
                 <DeployFile LocalName=".\Win32\Debug\Project1.tds" Configuration="Debug" Class="DebugSymbols">

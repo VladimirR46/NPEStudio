@@ -5,6 +5,7 @@
 
 #include "Unit3.h"
 #include "Unit2.h"
+#include "Unit1.h"
 
 #include "TaskSpiral.hpp"
 #include <fstream>
@@ -58,6 +59,16 @@ void __fastcall TForm3::FormShow(TObject* Sender)
 			object[i] = colorBox;
 		}
 
+		if (it->second.gtype == GuiType::TSwitch) {
+			TSwitch* Switch = new TSwitch(item);
+			Switch->Parent = item;
+			Switch->Align = TAlignLayout::VertCenter;
+			Switch->Cursor = crHandPoint;
+            Switch->Height = 22;
+			Switch->IsChecked = bool(it->second.get<unsigned int>());
+			object[i] = Switch;
+		}
+
     }
 	ListBox1->EndUpdate();
 }
@@ -80,6 +91,11 @@ void __fastcall TForm3::Button1Click(TObject* Sender)
 		if (it->second.gtype == GuiType::TComboColorBox) {
 		  TComboColorBox *colorBox = static_cast<TComboColorBox*>(object[i]);
           it->second.set((int)colorBox->Color);
+		}
+
+		if (it->second.gtype == GuiType::TSwitch) {
+		  TSwitch *Switch = static_cast<TSwitch*>(object[i]);
+		  it->second.set((int)Switch->IsChecked);
         }
 	}
 

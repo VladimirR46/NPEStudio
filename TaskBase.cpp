@@ -39,6 +39,17 @@ void TaskBase::DrawOneNumber(int number)
 	Bitmap->Canvas->EndScene();
 }
 //--------------------------------------------------------------------------
+void TaskBase::DrawText(AnsiString text, int size)
+{
+	TRectF MyRect(0, 0, Form->Width, Form->Height);
+	Bitmap->Canvas->BeginScene();
+	Bitmap->Canvas->Font->Size = size;
+	Bitmap->Canvas->Fill->Color = claBlack;
+	Bitmap->Canvas->FillText(MyRect, text, false, 100,
+		TFillTextFlags(), TTextAlign::Center, TTextAlign::Center);
+	Bitmap->Canvas->EndScene();
+}
+//--------------------------------------------------------------------------
 void TaskBase::DrawTable(int numbers[], int size)
 {
 	Bitmap->Canvas->BeginScene();
@@ -72,6 +83,11 @@ void TaskBase::DrawTable(int numbers[], int size)
 void TaskBase::ClearCanva()
 {
 	Bitmap->Clear(TAlphaColorRec::Black);
+}
+//--------------------------------------------------------------------------
+void TaskBase::ClearCanva(TAlphaColor color)
+{
+	Bitmap->Clear(color);
 }
 //--------------------------------------------------------------------------
 /*
