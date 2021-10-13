@@ -18,13 +18,13 @@ public:
 		if(!FileExists(_name+".cfg"))
 		{
 			Settings.Add(LineThick, "Толщина ведомой линии (mm)", GuiType::TEdit, 4);
-			Settings.Add(SpiralThick, "Толщина сипрали (mm)", GuiType::TEdit, 4);
+			Settings.Add(SpiralThick, "Толщина спирали (mm)", GuiType::TEdit, 4);
 			Settings.Add(TrialMaxCount, "Кол. триалов", GuiType::TEdit, 2);
 			Settings.Add(SparalRadius, "Радиус спирали", GuiType::TEdit, 18);
-			Settings.Add(LineColor, "Цвет ведомой линии", GuiType::TComboColorBox, TAlphaColorRec::Lime);
-			Settings.Add(StartPointColor, "Цвет точки начала", GuiType::TComboColorBox, TAlphaColorRec::Red);
-			Settings.Add(SpiralColor, "Цвет спирали", GuiType::TComboColorBox, TAlphaColorRec::White);
-            Settings.Add(EndPointColor, "Цвет точки конца", GuiType::TComboColorBox, TAlphaColorRec::White);
+			Settings.Add(LineColor, "Цвет ведомой линии", GuiType::TComboColorBox, (int)TAlphaColorRec::Lime);
+			Settings.Add(StartPointColor, "Цвет точки начала", GuiType::TComboColorBox, (int)TAlphaColorRec::Red);
+			Settings.Add(SpiralColor, "Цвет спирали", GuiType::TComboColorBox, (int)TAlphaColorRec::White);
+            Settings.Add(EndPointColor, "Цвет точки конца", GuiType::TComboColorBox, (int)0xFF73BCF0);
 			Settings.Add(MonitorDiagonal, "Диагональ монитора", GuiType::TEdit, 23.6);
 			Settings.Add(ShowResults, "Показывать результат", GuiType::TSwitch, 0);
 			Settings.save(_name+".cfg");
@@ -33,6 +33,10 @@ public:
 		{
 			Settings.load(_name+".cfg");
 		}
+
+	   StartTimer = new TTimer(NULL);
+	   StartTimer->OnTimer = &TimerEvent;
+	   StartTimer->Enabled = false;
 
     }
 
@@ -93,7 +97,6 @@ public:
 
     // --------------------------------------------------------------------------
     void UserClick() { }
-
     // --------------------------------------------------------------------------
     void DrawLine(TAlphaColor color, TPointF point)
     {
@@ -128,14 +131,22 @@ public:
             log_files[CurrentTrial]->Add(
                 UIntToStr(tm) + " " + FloatToStr(X) + " " + FloatToStr(Y));
         }
-    }
+	}
+
+	//---------------------------------------------------------------------------
+    void __fastcall TimerEvent(TObject *Sender)
+	{
+		PlaySound(L"beep-07a.wav", 0, SND_ASYNC);
+		isLineDraw = true;
+		StartTimer->Enabled = false;
+	}
 
     // --------------------------------------------------------------------------
     void UserMouseDown(int X, int Y)
-    {
+	{
         if (abs(Spiral.StartPoint.x - X) < 8 && abs(Spiral.StartPoint.y - Y) < 8 && !isLineDraw) {
-            PlaySound(L"beep-07a.wav", 0, SND_ASYNC);
-            isLineDraw = true;
+
+			StartTimer->Enabled = true;
         }
 
         PointClick = TPointF(X, Y);
@@ -145,17 +156,23 @@ public:
     // --------------------------------------------------------------------------
     void UserMouseUp(int X, int Y)
     {
-        MousePress = false;
+		if(StartTimer->Enabled) StartTimer->Enabled = false;
+
+		MousePress = false;
 
         unsigned __int64 tm = millis();
         log_files[CurrentTrial]->Add(
             UIntToStr(tm) + " " + FloatToStr(-1) + " " + FloatToStr(-1));
     }
     //--------------------------------------------------------------------------
-    void UserTouch(const TTouches Touches)
+	void UserTouch(const TTouches Touches, const TTouchAction Action)
     {
-        if (Touches.Length == 1 && !isLineDraw) {
-            UserMouseDown(Touches[0].Location.X, Touches[0].Location.Y);
+		if (Touches.Length == 1 && !isLineDraw && Action == TTouchAction::Down) {
+			UserMouseDown(Touches[0].Location.X, Touches[0].Location.Y);
+		}
+
+		if(Touches.Length == 1 && Action == TTouchAction::Up) {
+		   UserMouseUp(Touches[0].Location.X, Touches[0].Location.Y);
         }
     }
 
@@ -348,7 +365,9 @@ private:
     int CurrentTrial;
     std::vector<int> TrialSequence;
 
-    std::vector<TStringList*> log_files;
+	std::vector<TStringList*> log_files;
+
+    TTimer* StartTimer;
 };
 
 #endif

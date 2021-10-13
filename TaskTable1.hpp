@@ -46,7 +46,7 @@ public:
 
 	}
 	//--------------------------------------------------------------------------
-	void UserTouch(const TTouches Touches)
+	void UserTouch(const TTouches Touches, const TTouchAction Action)
 	{
 
 	}

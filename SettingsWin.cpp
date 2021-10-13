@@ -3,9 +3,9 @@
 #include <fmx.h>
 #pragma hdrstop
 
-#include "Unit3.h"
+#include "SettingsWin.h"
 #include "Unit2.h"
-#include "Unit1.h"
+#include "MainWin.h"
 
 #include "TaskSpiral.hpp"
 #include <fstream>

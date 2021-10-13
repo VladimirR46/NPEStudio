@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------
 
-#ifndef Unit1H
-#define Unit1H
+#ifndef MainWinH
+#define MainWinH
 //---------------------------------------------------------------------------
 #include <FMX.Colors.hpp>
 #include <FMX.Controls.Presentation.hpp>
@@ -35,9 +35,12 @@ class TForm1 : public TForm
     TMenuItem* MenuItem1;
     TMenuItem* MenuItem2;
     TButton* Button2;
+	TGroupBox *GroupBox1;
+	TButton *Button3;
     void __fastcall Button1Click(TObject* Sender);
     void __fastcall Button2Click(TObject* Sender);
     void __fastcall ComboBox1Change(TObject* Sender);
+	void __fastcall Button3Click(TObject *Sender);
   private: // User declarations
   public: // User declarations
     __fastcall TForm1(TComponent* Owner);

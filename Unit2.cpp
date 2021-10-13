@@ -4,7 +4,7 @@
 #pragma hdrstop
 
 #include "Unit2.h"
-#include "Unit1.h"
+#include "MainWin.h"
 
 #include "TaskSpiral.hpp"
 #include "TaskTable1.hpp"
@@ -89,7 +89,7 @@ void __fastcall TForm2::FormTouch(
     TObject* Sender, const TTouches Touches, const TTouchAction Action)
 
 {
-    Tasks[CurrentTask]->UserTouch(Touches);
+    Tasks[CurrentTask]->UserTouch(Touches, Action);
 }
 //---------------------------------------------------------------------------
 

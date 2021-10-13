@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------
 
-#ifndef Unit3H
-#define Unit3H
+#ifndef SettingsWinH
+#define SettingsWinH
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include <FMX.Controls.hpp>
