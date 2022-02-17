@@ -51,10 +51,15 @@ public:
 
 	bool Finished() override {
 		if(Settings->get(Enable).ToInt() == 0) return true;
-
-		if(TrialCount >= Settings->getInt(TrialMax)*2) return true;
-
+		if(TrialCount >= Settings->getInt(TrialMax)*2){
+         InitTask("");
+		 return true;
+		}
 		return false;
+	}
+
+	bool isEnable() override {
+      return (bool) Settings->getInt(Enable);
 	}
 
     void CloseTask() override {}
@@ -249,15 +254,19 @@ public:
 		memset(array,0, sizeof(int)*7);
 		memset(complexity_count,0, sizeof(int)*3);
 		memset(samples_count,0, sizeof(int)*2);
-
-		Protocol->AddDescription("Описание протокола "+ TaskName);
-		Protocol->AddDescription("10 - плюс\n11 - числа\n12 - фон1\n13 - стимул\n14 - фон2\n15 - реакция\n");
 	}
 
 	bool Finished() override {
 		if(Settings->getInt(Enable) == 0) return true;
-		if(TrialCount >= Settings->getInt(TrialMax)*3) return true;
+		if(TrialCount >= Settings->getInt(TrialMax)*3){
+         InitTask("");
+		 return true;
+		}
         else return false;
+	}
+
+	bool isEnable() override {
+      return (bool) Settings->getInt(Enable);
 	}
 
     void CloseTask() override {}
@@ -483,16 +492,21 @@ public:
 		state = PLUS;
 		TrialCount = 0;
 
-		Protocol->AddDescription("Описание протокола: "+ TaskName);
-		//Protocol->AddDescription("10 - плюс\n11 - числа\n12 - фон1\n13 - стимул\n14 - фон2\n15 - реакция\n");
 		calc_complexity();
         calc_samples_queue();
 	}
 
 	bool Finished() override {
 		if(Settings->getInt(Enable) == 0) return true;
-		if(TrialCount >= Settings->getInt(TrialMax)*3) return true;
+		if(TrialCount >= Settings->getInt(TrialMax)*3){
+         InitTask("");
+		 return true;
+		}
 		else return false;
+	}
+
+	bool isEnable() override {
+      return (bool) Settings->getInt(Enable);
 	}
 
 	void CloseTask() override {}
@@ -666,6 +680,10 @@ public:
 		 return true;
 		}
 		else return false;
+	}
+
+	bool isEnable() override {
+      return (bool) Settings->getInt(Enable);
 	}
 
 	void CloseTask() override {}

@@ -48,27 +48,17 @@ public:
 	void AddData(int time, UnicodeString str);
 	void AddData(int time, int state);
 
-	void CurrentBlock(AnsiString name)
-	{
-		 NameBlocks[block_index] = name.c_str();
-    }
-
 	void NextBlock(AnsiString name)
 	{
-		block_index++;
-		NameBlocks[block_index] = name.c_str();
-	}
-
-	void ResetBlockCounter()
-	{
-        block_index = 0;
+		NameBlocks.push_back(name);
+		Data.push_back(std::vector<std::shared_ptr<TrialBase>>());
 	}
 
 	void Init(UnicodeString path, SubjectInfo _sub);
 
 	void SaveTrial(std::shared_ptr<TrialBase> _trial)
 	{
-	   Data[block_index].push_back(_trial);
+	   Data.back().push_back(_trial);
     }
 
 	void Save();
@@ -84,8 +74,7 @@ private:
     SubjectInfo subject;
 
 	std::vector<std::vector<std::shared_ptr<TrialBase>>> Data;
-	std::map<int, AnsiString> NameBlocks;
-	int block_index = 0;
+	std::vector<AnsiString> NameBlocks;
 };
 
 #endif

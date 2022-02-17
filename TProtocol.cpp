@@ -5,7 +5,6 @@
 #include "TProtocol.h"
 #include "TElementaryCognitiveFunctions.h"
 
-#include <codecvt>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
@@ -30,32 +29,12 @@ void TProtocol::AddData(int time, int state)
 	 ProtocolFile->Add(IntToStr(time) + " " + IntToStr(state));
 }
 
-std::string UTF8_to_CP1251(std::string const & utf8)
-{
-    if(!utf8.empty())
-    {
-        int wchlen = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), utf8.size(), NULL, 0);
-        if(wchlen > 0 && wchlen != 0xFFFD)
-        {
-            std::vector<wchar_t> wbuf(wchlen);
-            MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), utf8.size(), &wbuf[0], wchlen);
-            std::vector<char> buf(wchlen);
-            WideCharToMultiByte(1251, 0, &wbuf[0], wchlen, &buf[0], wchlen, 0, 0);
-
-            return std::string(&buf[0], wchlen);
-        }
-    }
-    return std::string();
-}
-
 void TProtocol::Save()
 {
 	 DescriptionFile->SaveToFile(FilePath+"\\Description.txt", TEncoding::Unicode);
 	 ProtocolFile->SaveToFile(FilePath+"\\Protocol.txt", TEncoding::Unicode);
 
-     MATFile *pmat;
-     // Создаю mat файл
-	 pmat = matOpen("Protocol.mat", "w");
+     MATFile *pmat = matOpen("Protocol.mat", "w");
 
 	 // Subject
 	 const char *fieldnames[5] = {"id", "age", "gender", "hand", "edinburgh"};
@@ -80,12 +59,13 @@ void TProtocol::Save()
 	 for(int i = 0; i < Data.size(); i++)
 	 {
 		mxArray *block;
-		AnsiString Name = AnsiString(NameBlocks[i].c_str());
+		AnsiString BlockName = NameBlocks[i];
+        double BlockStartTime = 0;
 
 		////////////////Комбинированные функции//////////////////
 		if(NameBlocks[i] == "Комбинированные функции")
 		{
-			const char *fieldnames[8] = {"TrialsName", "Trials", "Stimuls", "StimulsName", "GuideTime", "CrossTime", "Goal", "Complexity"};
+			const char *fieldnames[8] = {"TimeLineName", "TimeLine", "Stimuls", "StimulsName", "GuideTime", "CrossTime", "Goal", "Complexity"};
 			block = mxCreateStructMatrix(1, 1, 8, fieldnames);
 
 			const char *trialsname[2] = {"Matrix", "Response"};
@@ -94,21 +74,23 @@ void TProtocol::Save()
             mxSetCell(trialsname_cell,1, mxCreateString(trialsname[1]));
 			mxSetField(block, 0, fieldnames[0], trialsname_cell);
 
-			const char *stimulsname[1] = {"Matrix"};
-			mxArray *stimulsname_cell = mxCreateCellMatrix(1,1);
+			const char *stimulsname[2] = {"Matrix","Result"};
+			mxArray *stimulsname_cell = mxCreateCellMatrix(1,2);
 			mxSetCell(stimulsname_cell,0, mxCreateString(stimulsname[0]));
+            mxSetCell(stimulsname_cell,1, mxCreateString(stimulsname[1]));
 			mxSetField(block, 0, fieldnames[3], stimulsname_cell);
 
 			int size = Data[i].size()-1;
 			mxArray *Trials = mxCreateDoubleMatrix(size, 2, mxREAL);
 			double *trials_ptr = mxGetPr(Trials);
 
-			mxArray *stimul_cell = mxCreateCellMatrix(size, 1);
+			mxArray *stimul_cell = mxCreateCellMatrix(size, 2);
 			for(int j = 0; j < Data[i].size(); j++)
 			{
 				TFunctionCombination::TrialProtocol* Trial = static_cast<TFunctionCombination::TrialProtocol*>(Data[i][j].get());
 
 				if(j == 0) {
+					 BlockStartTime = Trial->INFO_TIME;
 					 mxSetField(block, 0, fieldnames[4], mxCreateDoubleScalar(Trial->INFO_TIME));
 					 mxSetField(block, 0, fieldnames[5], mxCreateDoubleScalar(Trial->PLUS_TIME));
 					 mxSetField(block, 0, fieldnames[6], mxCreateDoubleScalar(Trial->number));
@@ -119,33 +101,80 @@ void TProtocol::Save()
 
 					 mxArray *mat = mxCreateDoubleMatrix(1, Trial->varray.size(), mxREAL);
 					 for(int k = 0; k < Trial->varray.size(); k++) mxGetPr(mat)[k] = Trial->varray[k];
-					 mxSetCell(stimul_cell,j-1, mat);
+
+					 mxSetCell(stimul_cell,mxGetM(stimul_cell)*0+j-1, mat);
+					 mxSetCell(stimul_cell,mxGetM(stimul_cell)*1+j-1, mxCreateDoubleScalar(Trial->click.numbers));
 				}
 			}
 			mxSetField(block, 0, fieldnames[1], Trials);
 			mxSetField(block, 0, fieldnames[2], stimul_cell);
-		} else {
-			block = mxCreateString("Error");
+		}
+		////////////////Элементарные когнитивные функции//////////////////
+		else if(NameBlocks[i] == "Элементарные когнитивные функции")
+		{
+			TElementaryCognitiveFunctions::TrialProtocol* Trial = static_cast<TElementaryCognitiveFunctions::TrialProtocol*>(Data[i][0].get());
+			if(Trial->BACKGROUND_TIME != 0) {
+			 BlockName = "Фон";
+			 BlockStartTime = Trial->BACKGROUND_TIME;
+			}
+			else if(Trial->PAUSE_TIME != 0)
+			{
+			 BlockName = "Пауза";
+			 BlockStartTime = Trial->PAUSE_TIME;
+			}
+			block = mxCreateDoubleScalar(0);
+		}
+		////////////////"Ментальная арифметика"//////////////////
+		else if(NameBlocks[i] == "Ментальная арифметика")
+		{
+			const char *fieldnames[4] = {"TimeLineName", "TimeLine", "Stimuls", "StimulsName"};
+			block = mxCreateStructMatrix(1, 1, 4, fieldnames);
+
+			const char *timelinename[4] = {"Cross", "Equation", "Response", "Blank"};
+			mxArray *timelinename_cell = mxCreateCellMatrix(1,4);
+			for(int j = 0; j < 4; j++) mxSetCell(timelinename_cell,j, mxCreateString(timelinename[j]));
+			mxSetField(block, 0, fieldnames[0], timelinename_cell);
+
+            const int stimul_count = 4;
+			const char *stimulsname[stimul_count] = {"X","N","R","Result"};
+			mxArray *stimulsname_cell = mxCreateCellMatrix(1,stimul_count);
+			for(int j = 0; j < stimul_count; j++) mxSetCell(stimulsname_cell,j, mxCreateString(stimulsname[j]));
+			mxSetField(block, 0, fieldnames[3], stimulsname_cell);
+
+			mxArray *timeline = mxCreateDoubleMatrix(Data[i].size(), 4, mxREAL);
+			double *timeline_ptr = mxGetPr(timeline);
+			mxArray *stimul_cell = mxCreateCellMatrix(Data[i].size(), stimul_count);
+
+			size_t size =  Data[i].size();
+			for(int j = 0; j < Data[i].size(); j++)
+			{
+			   TMentalArithmeticBlock::TrialProtocol* Trial = static_cast<TMentalArithmeticBlock::TrialProtocol*>(Data[i][j].get());
+			   if(j == 0) BlockStartTime = Trial->PLUS_TIME;
+
+			   timeline_ptr[size*0+j] = Trial->PLUS_TIME;
+			   timeline_ptr[size*1+j] = Trial->EQUATION_TIME;
+			   timeline_ptr[size*2+j] = Trial->click.time;
+			   timeline_ptr[size*3+j] = Trial->BLANK_TIME;
+
+			   mxSetCell(stimul_cell,mxGetM(stimul_cell)*0+j, mxCreateDoubleScalar(Trial->X));
+			   mxSetCell(stimul_cell,mxGetM(stimul_cell)*1+j, mxCreateDoubleScalar(Trial->N));
+			   mxSetCell(stimul_cell,mxGetM(stimul_cell)*2+j, mxCreateDoubleScalar(Trial->R));
+               mxSetCell(stimul_cell,mxGetM(stimul_cell)*3+j, mxCreateDoubleScalar(Trial->click.numbers));
+			}
+
+			mxSetField(block, 0, fieldnames[1], timeline);
+			mxSetField(block, 0, fieldnames[2], stimul_cell);
+		}
+		///////////////Ошибка////////////////////////////////////////////
+		else {
+            block = mxCreateString("Error");
         }
-        //////////////////////////////////////////////////////////////
-		std::string utf8 =  u8"Мыва"; // or u8"zß水𝄋"
-							// or "\x7a\xc3\x9f\xe6\xb0\xb4\xf0\x9d\x84\x8b";
-		std::cout << "original UTF-8 string size: " << utf8.size() << '\n';
-
-		// the UTF-8 - UTF-32 standard conversion facet
-		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> cvt;
-
-		// UTF-8 to UTF-32
-		//std::u32string utf32 = cvt.from_bytes(utf8);
-		mxSetCell(protocol_cell,3*0, mxCreateString("Вова"));
-		mxSetCell(protocol_cell,3*1, mxCreateString(UTF8_to_CP1251("Вовавыаыв").c_str()));
-        //std::u8string dd = "ВАлыв";
-		mxSetCell(protocol_cell,3*2, mxCreateString(UTF8_to_CP1251(utf8).c_str()));
-
-
-		mxSetCell(protocol_cell,3*i+1, mxCreateDoubleScalar(234234234));
+		//////////////////////////////////////////////////////////////
+		mxSetCell(protocol_cell,3*i, mxCreateString(AnsiToUtf8(BlockName).c_str()));
+		mxSetCell(protocol_cell,3*i+1, mxCreateDoubleScalar(BlockStartTime));
 		mxSetCell(protocol_cell,3*i+2, block);
 	 }
+
 	 matPutVariable(pmat, "protocol", protocol_cell);
 	 mxDestroyArray(protocol_cell);
      matClose(pmat);
@@ -164,7 +193,8 @@ void TProtocol::Init(UnicodeString path, SubjectInfo _sub)
 	AddDescription("\n____________________________________________________________________________________\n");
 
 	Data.clear();
-	Data.assign(24,std::vector<std::shared_ptr<TrialBase>>());
+	NameBlocks.clear();
+	//Data.assign(24,std::vector<std::shared_ptr<TrialBase>>());
 }
 
 TProtocol::~TProtocol()

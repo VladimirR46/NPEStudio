@@ -165,6 +165,12 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <ILINK_LibraryPath>Library\Matlab\Win64\Matlab2020b\extern\lib\win64\borland;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <VerInfo_Locale>1033</VerInfo_Locale>
+        <BCC_ShowLSPMessages>true</BCC_ShowLSPMessages>
+        <BCC_EnableLSPIndexing>true</BCC_EnableLSPIndexing>
+        <BCC_GenerateLSPLog>true</BCC_GenerateLSPLog>
+        <BCC_GenerateInOutFiles>true</BCC_GenerateInOutFiles>
+        <BCC_EnableLSPIndexingOnChange>true</BCC_EnableLSPIndexingOnChange>
+        <BCC_NumberOfIndexingThreads>4</BCC_NumberOfIndexingThreads>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <Defines>NDEBUG;$(Defines)</Defines>
@@ -279,9 +285,8 @@
                 </VFOLDERS>
             </CPlusPlusBuilder.Personality>
             <Deployment Version="3">
-                <DeployFile LocalName=".\Win32\Debug\Project1.tds" Configuration="Debug" Class="DebugSymbols">
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32270mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
-                        <RemoteName>Project1.tds</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -397,8 +402,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32270mt.dll" Class="DependencyModule">
+                <DeployFile LocalName=".\Win32\Debug\Project1.tds" Configuration="Debug" Class="DebugSymbols">
                     <Platform Name="Win32">
+                        <RemoteName>Project1.tds</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

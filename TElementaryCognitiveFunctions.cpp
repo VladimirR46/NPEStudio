@@ -28,17 +28,24 @@ void TElementaryCognitiveFunctions::InitTask(AnsiString Path)
 	   PartCount = 0;
        cur_block = 0;
 	   BlockSequence.clear();
-       Protocol->ResetBlockCounter();
 
-	   std::vector<int> sequence{0, 1, 2, 3, 3, 3};
-       srand(time(NULL));
+	   std::vector<int> sequence;
+
+		for(int i = 0; i < Blocks.size(); i++){
+			if(Blocks[i]->isEnable()) {
+			   sequence.push_back(i);
+			   if(Blocks[i]->GetTaskName() == "Комбинированные функции") {
+				  sequence.push_back(i);
+                  sequence.push_back(i);
+               }
+            }
+		}
+
+	   srand(time(NULL));
 	   for(int i = 0; i < Settings->getInt(PartsCount); i++) {
-        std::random_shuffle(sequence.begin(), sequence.end());
+		std::random_shuffle(sequence.begin(), sequence.end());
 		BlockSequence.push_back(sequence);
 	   }
-
-	   Protocol->AddDescription("Описание протокола "+ TaskName);
-	   Protocol->AddDescription("0 - фон\n2 - перерыв\n");
 }
 
 void TElementaryCognitiveFunctions::StateManager()
@@ -52,7 +59,7 @@ void TElementaryCognitiveFunctions::StateManager()
 			Timer->Interval = Settings->getInt(RangeBackground);  // 60000
             Timer->Enabled = true;
 			#ifdef PROTOCOL_LOGGER
-				Protocol->CurrentBlock(GetTaskName());
+				Protocol->NextBlock(GetTaskName());
 				Trial = TrialProtocol::CreateTrial(Protocol);
 				Trial->BACKGROUND_TIME = millis();
 				Protocol->NextBlock(Blocks[BlockSequence[PartCount][cur_block]]->GetTaskName());
@@ -63,12 +70,14 @@ void TElementaryCognitiveFunctions::StateManager()
 		{
 			if(Blocks[BlockSequence[PartCount][cur_block]]->Finished()){
 				cur_block++;
-                Protocol->NextBlock(Blocks[BlockSequence[PartCount][cur_block]]->GetTaskName());
 				if(cur_block >= BlockSequence[PartCount].size())
 				{
 				   state = PAUSE;
 				   cur_block = 0;
-				}
+                   Protocol->NextBlock(GetTaskName());
+				} else {
+                    Protocol->NextBlock(Blocks[BlockSequence[PartCount][cur_block]]->GetTaskName());
+                }
 				StateManager();
 			}
 			else{
@@ -84,8 +93,8 @@ void TElementaryCognitiveFunctions::StateManager()
             state = BACKGROUND;
 			PartCount++;
 			#ifdef PROTOCOL_LOGGER
+                Trial = TrialProtocol::CreateTrial(Protocol);
 				Trial->PAUSE_TIME = millis();
-				Protocol->NextBlock(GetTaskName());
 			#endif
 			break;
 		}

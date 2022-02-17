@@ -30,6 +30,7 @@ class TBaseTask
 
 	void Init(AnsiString Path, SubjectInfo _sub);
 	virtual void InitTask(AnsiString Path)= 0;
+    virtual bool isEnable() { return true; }
 	virtual void StateManager() = 0;
     virtual bool Finished() = 0;
     virtual void UserClick() {};
