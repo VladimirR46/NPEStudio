@@ -1,13 +1,13 @@
 #ifndef TASKTABLE1
 #define TASKTABLE1
 
-#include "TaskBase.h"
+#include "BaseTask.h"
 
-class Task1 : public TaskBase
+class Task1 : public BaseTask
 {
 public:
 
-	Task1(TForm* _form, TTimer* _timer, TBitmap* _bitmap, AnsiString _name) : TaskBase(_form, _timer, _bitmap, _name)
+	Task1(TForm* _form, TTimer* _timer, TCanvas* _canvas, AnsiString _name) : BaseTask(_form, _timer, _canvas, _name)
 	{
 	}
 
@@ -50,6 +50,10 @@ public:
 	{
 
 	}
+	void Draw()
+	{
+
+    }
     //--------------------------------------------------------------------------
 	void UserMouseDown(int X, int Y)
 	{

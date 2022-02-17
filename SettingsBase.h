@@ -6,11 +6,14 @@
 #include <fmx.h>
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <map>
+//#include <fstream>
+//#include <iostream>
 #include <string>
-#include <sstream>
+//#include <sstream>
+#include <System.JSON.hpp>
+#include <map>
+
+#define SettingsDir "Settings\\"
 
 using namespace std;
 
@@ -18,74 +21,69 @@ using namespace std;
 enum class GuiType : int {
 	TEdit,
 	TComboColorBox,
-    TSwitch
+	TSwitch,
+	TCheckBox,
+    TRange
 };
 
-struct TParameter {
-public:
-	TParameter();
-
-	void init(std::string _name, GuiType _gtype);
-
-	template <typename T>
-	void set(T i)
-	{
-		stringstream s;
-		s << i;
-		value = s.str();
-	}
-
-	template <typename T>
-	T get()
-	{
-		T ret;
-		std::istringstream iss(value);
-		iss >> ret;
-
-		if (iss.fail())
-		{
-			return T();
-		}
-
-		return ret;
-	}
-
-	void odata(ofstream& stream);
-
-	void idata(ifstream& stream);
-
-	std::string name;
-	std::string value;
-    GuiType gtype;
+struct TParameter
+{
+	UnicodeString desc;
+	GuiType type;
+	UnicodeString value;
 };
 
-typedef std::map<int, TParameter> parameters_list;
+typedef struct range {int min; int max; } range_t;
+typedef std::map<int, TParameter> parameter_list;
 
 class SettingsBase {
 public:
-	template <typename T>
-	void Add(int i, std::string name, GuiType _gtype, T v)
+	SettingsBase(UnicodeString TaskName);
+
+    template <typename T>
+	void Add(int ParameterName, UnicodeString description, GuiType _gtype, T v)
 	{
-		TParameter parameter;
-		parameter.init(name, _gtype);
-		parameter.set(v);
-		list[i] = parameter;
+		parameters[ParameterName] = {description, _gtype , UnicodeString(v)};
 	}
 
-	void save(AnsiString fileName);
-
-	void load(AnsiString fileName);
-
-	template <typename T>
-	T get(int i)
-	{
-		return list[i].get<T>();
+	UnicodeString get(int ParameterName){
+		 return parameters[ParameterName].value;
+	}
+	int getInt(int ParameterName){
+		return parameters[ParameterName].value.ToInt();
+	}
+	double getDouble(int ParameterName){
+		return parameters[ParameterName].value.ToDouble();
 	}
 
-	parameters_list& GetList();
+	range_t getRange(int ParameterName) {
+       range_t rge;
+	   TStringDynArray data = SplitString(parameters[ParameterName].value,":");
+	   rge.min = data[0].ToInt();
+	   rge.max = data[1].ToInt();
+	   return rge;
+	}
 
+	int getRandFromRange(int ParameterName)
+	{
+		range_t rge;
+		rge = getRange(ParameterName);
+		return RandomRange(rge.min, rge.max);
+    }
+
+	bool Save(UnicodeString FileName);
+	bool Load(UnicodeString FileName);
+
+	parameter_list& GetParametersList()
+	{
+		return parameters;
+    }
+
+    ~SettingsBase();
 private:
-    parameters_list list;
+	UnicodeString TaskName;
+	parameter_list parameters;
+
 };
 
 
