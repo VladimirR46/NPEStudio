@@ -6,30 +6,51 @@
 #include "TBaseTask.h"
 //---------------------------------------------------------------------------
 
+struct TCubeF {
+	TPointF point[8];
+};
+
+struct TComplexity
+{
+	float intensity = 0.0;
+	int cube_type = -1;
+    TCubeF* cube;
+};
+
 class TCubeTask : public TBaseTask
 {
 public:
 	enum SettingsName : int
 	{
-		RangeBackground = 0,
-		RangeBreak = 1,
-        PartsCount = 2
+		TrialMax = 0,
+		RangeInstruction,
+		RangeNoise,
+        RangeCoube
     };
 	enum State : int
 	{
 		 INSTRUCTION = -1,
 		 NOISE,
-		 POINT,
 		 CUBE,
          Size
 	} state;
 
 	// Описание для протокола --------------------------------------------------
-	/*
 	struct DProtocol : ProtocolBase
 	{
-		unsigned int BACKGROUND_TIME = 0;
-        unsigned int PAUSE_TIME = 0;
+		struct Trial
+		{
+			unsigned int StateTime[State::Size] = {0};
+			int cube_type = -1;
+            float intensity = 0;
+		};
+		std::vector<std::shared_ptr<Trial>> Trials;
+
+		Trial* CreateTrial() {
+			std::shared_ptr<Trial> trial = std::make_shared<Trial>();
+            Trials.push_back(trial);
+			return trial.get();
+        }
 	};
 
 	std::shared_ptr<ProtocolBase> CreateProtocol() override
@@ -39,7 +60,6 @@ public:
         OwnProtocol = protocol.get();
 		return protocol;
 	}
-	*/
     //--------------------------------------------------------------------------
 	TCubeTask(AnsiString _name);
 	void InitTask(AnsiString Path) override;
@@ -48,9 +68,14 @@ public:
 	void UserMouseDown(int X, int Y) override;
 	void Draw() override;
 	void CloseTask() override;
-private:
 
-	//DProtocol* OwnProtocol;
+	void DrawCube(TCubeF cube, float target_intensity);
+private:
+	int TrialCount = 0;
+
+	std::vector<TComplexity> complexity;
+	DProtocol* OwnProtocol;
+    DProtocol::Trial* Trial;
 };
 
 

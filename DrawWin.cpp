@@ -58,7 +58,7 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	Tasks.push_back(STask);
 
 	// Кубы
-	task_ptr CubeTask(new TCubeTask("Комбинированные функции"));
+	task_ptr CubeTask(new TCubeTask("Кубы Неккера"));
     Tasks.push_back(CubeTask);
 
     for (int i = 0; i < Tasks.size(); i++) {

@@ -2,6 +2,8 @@
 #pragma hdrstop
 #include "TProtocol.h"
 #include "TElementaryCognitiveFunctions.h"
+#include "TCubeTask.h"
+#include <filesystem>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
@@ -31,12 +33,85 @@ void TProtocol::NextBlock(std::shared_ptr<ProtocolBase> block)
 	Data.push_back(block);
 }
 //------------------------------------------------------------------------------
+void TProtocol::SaveBlockTask()
+{
+	std::wstring path = std::filesystem::current_path(); //getting path
+    std::filesystem::current_path(FilePath.c_str()); //setting path
+__try {
+	/*FilePath*/
+	MATFile *pmat = matOpen("Protocol.mat", "w");
+	if (pmat == NULL) {
+		ShowMessage("Ошибка: Невозможно сохранить протокол");
+        return;
+	}
+
+	// 							Subject
+	const char *SubFieldNames[5] = {"id", "age", "gender", "hand", "edinburgh"};
+	mxArray *sub = mxCreateStructMatrix(1, 1, 5, SubFieldNames);
+	mxSetField(sub, 0, SubFieldNames[0], mxCreateDoubleScalar(0));
+	mxSetField(sub, 0, SubFieldNames[1], mxCreateDoubleScalar(subject.Age.ToDouble()));
+	mxSetField(sub, 0, SubFieldNames[2], mxCreateString(subject.Gender.c_str()));
+	mxSetField(sub, 0, SubFieldNames[3], mxCreateString(subject.ActiveHand.c_str()));
+	mxArray *edinburgh = mxCreateDoubleMatrix(10, 1, mxREAL);
+	double *x = mxGetPr(edinburgh);
+	std::fill(x, x+10, 22);
+	mxSetField(sub, 0, SubFieldNames[4], edinburgh);
+	matPutVariable(pmat, "subject", sub);
+	mxDestroyArray(sub);
+	//////////////////////////////////////
+
+	const char *fieldnames[4] = {"TimeLineName", "TimeLine", "StimulsName", "Stimuls"};
+	mxArray *block = mxCreateStructMatrix(1, 1, 4, fieldnames);
+
+	typedef TCubeTask::DProtocol::Trial Trial;
+	TCubeTask::DProtocol* proto_ptr = static_cast<TCubeTask::DProtocol*>(Data[0].get());
+
+	mxArray* timelineName = mCreateStringArray({"Noise", "Cube"});
+	mxSetField(block, 0, fieldnames[0], timelineName);
+
+	mxArray* stimulsName = mCreateStringArray({"CubeType","Intensity"});
+	mxSetField(block, 0, fieldnames[2], stimulsName);
+
+	mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
+	double *timeline_ptr = mxGetPr(timeline);
+	mxArray *stimuls_cell = mxCreateCellMatrix(proto_ptr->Trials.size(), mxGetN(stimulsName));
+
+	for(int j = 0; j < proto_ptr->Trials.size(); j++)
+	{
+		Trial* trial = static_cast<Trial*>(proto_ptr->Trials[j].get());
+
+        int size = proto_ptr->Trials.size();
+		for(int k = 0; k < 2; k++){
+		  timeline_ptr[size*k+j] = trial->StateTime[k];
+		}
+
+        mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, mxCreateDoubleScalar(trial->cube_type));
+		mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mxCreateDoubleScalar(trial->intensity));
+	}
+
+    mxSetField(block, 0, fieldnames[1], timeline);
+	mxSetField(block, 0, fieldnames[3], stimuls_cell);
+
+    matPutVariable(pmat, "protocol", block);
+	mxDestroyArray(block);
+
+	if(matClose(pmat) != 0) {
+		ShowMessage("Ошибка: Невозможно закрыть файл протокола");
+		return;
+	}
+}
+__finally{
+	  std::filesystem::current_path(path);
+}
+
+}
+//------------------------------------------------------------------------------
 void TProtocol::Save()
 {
-	 DescriptionFile->SaveToFile(FilePath+"\\Description.txt", TEncoding::Unicode);
-	 ProtocolFile->SaveToFile(FilePath+"\\Protocol.txt", TEncoding::Unicode);
+	 //DescriptionFile->SaveToFile(FilePath+"\\Description.txt", TEncoding::Unicode);
+	 //ProtocolFile->SaveToFile(FilePath+"\\Protocol.txt", TEncoding::Unicode);
 
-	 MATFile *pmat = matOpen("Protocol.mat", "w");
+	 MATFile *pmat = matOpen(AnsiString(FilePath+"\\Protocol.mat").c_str(), "w");
 
 	 // Subject
 	 const char *fieldnames[5] = {"id", "age", "gender", "hand", "edinburgh"};

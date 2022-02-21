@@ -1,5 +1,4 @@
 //---------------------------------------------------------------------------
-
 #include <fmx.h>
 #ifdef _WIN32
 #include <tchar.h>
@@ -17,14 +16,12 @@ extern "C" int FMXmain()
 	try
 	{
 		Application->Initialize();
-
 		//GlobalUseDX = true;
 		//GlobalUseDXInDX9Mode = true;
 		GlobalUseDXSoftware = true;
 		//GlobalUseDirect2D = true;
 		//GlobalUseGPUCanvas = true;
 		//GlobalUseHWEffects = true;
-
 		Application->CreateForm(__classid(TForm1), &Form1);
 		Application->CreateForm(__classid(TForm2), &Form2);
 		Application->CreateForm(__classid(TForm3), &Form3);

@@ -43,7 +43,8 @@ public:
 	void AddData(int time, int state);
 	void NextBlock(std::shared_ptr<ProtocolBase> block);
 	void Init(UnicodeString path, SubjectInfo _sub);
-    void Save();
+	void Save();
+    void SaveBlockTask();
 	void SetInstractionTime(unsigned int time){
 		Data.back()->InstructionTime = time;
         instruction_count++;
