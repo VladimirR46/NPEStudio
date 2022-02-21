@@ -1,5 +1,4 @@
 //---------------------------------------------------------------------------
-
 #ifndef TProtocolH
 #define TProtocolH
 //---------------------------------------------------------------------------
@@ -9,7 +8,6 @@
 #include "mat.h"
 #pragma comment (lib,"borland/libmat.lib")
 #pragma comment (lib,"borland/libmx.lib")
-
 struct SubjectInfo
 {
    AnsiString LastName;
@@ -19,7 +17,6 @@ struct SubjectInfo
    AnsiString ActiveHand;
    AnsiString Age;
 };
-
 struct ClickInfo
 {
 	int X;
@@ -28,43 +25,41 @@ struct ClickInfo
 	int numbers;
 };
 
-struct TrialBase
+struct ProtocolBase
 {
-   int id;
-   ClickInfo click;
+	AnsiString BlockName = "";
+	unsigned int InstructionTime = 0;
+
 };
-
-
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
 class TProtocol
 {
 public:
 	TProtocol(UnicodeString TaskName);
 
-
 	void AddDescription(UnicodeString str);
 	void AddData(int time, UnicodeString str);
 	void AddData(int time, int state);
-
-	void NextBlock(AnsiString name)
-	{
-		NameBlocks.push_back(name);
-		Data.push_back(std::vector<std::shared_ptr<TrialBase>>());
-	}
-
+	void NextBlock(std::shared_ptr<ProtocolBase> block);
 	void Init(UnicodeString path, SubjectInfo _sub);
-
-	void SaveTrial(std::shared_ptr<TrialBase> _trial)
-	{
-	   Data.back().push_back(_trial);
+    void Save();
+	void SetInstractionTime(unsigned int time){
+		Data.back()->InstructionTime = time;
+        instruction_count++;
+	}
+	int InstructionSize() {
+        return instruction_count;
     }
 
-	void Save();
-
-
-
+    mxArray *mCreateStringArray(std::vector<AnsiString> array)
+	{
+		mxArray *cell = mxCreateCellMatrix(1,array.size());
+		for(int i = 0; i < array.size(); i++) {
+		   mxSetCell(cell,i, mxCreateString(AnsiToUtf8(array[i]).c_str()));
+		}
+		return cell;
+	}
     ~TProtocol();
 private:
     UnicodeString TaskName;
@@ -73,8 +68,7 @@ private:
 	UnicodeString FilePath = "";
     SubjectInfo subject;
 
-	std::vector<std::vector<std::shared_ptr<TrialBase>>> Data;
-	std::vector<AnsiString> NameBlocks;
+	std::vector<std::shared_ptr<ProtocolBase>> Data;
+    int instruction_count = 0;
 };
-
 #endif

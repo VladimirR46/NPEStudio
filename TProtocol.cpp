@@ -1,10 +1,7 @@
-п»ї//---------------------------------------------------------------------------
-
+//---------------------------------------------------------------------------
 #pragma hdrstop
-
 #include "TProtocol.h"
 #include "TElementaryCognitiveFunctions.h"
-
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
@@ -13,190 +10,192 @@ TProtocol::TProtocol(UnicodeString _TaskName) : TaskName(_TaskName)
 	ProtocolFile = new TStringList();
 	DescriptionFile = new TStringList();
 }
-
+//------------------------------------------------------------------------------
 void TProtocol::AddDescription(UnicodeString str)
 {
 	 DescriptionFile->Add(str);
 }
-
+//------------------------------------------------------------------------------
 void TProtocol::AddData(int time, UnicodeString str)
 {
 	 ProtocolFile->Add(IntToStr(time) + " " + str);
 }
-
+//------------------------------------------------------------------------------
 void TProtocol::AddData(int time, int state)
 {
 	 ProtocolFile->Add(IntToStr(time) + " " + IntToStr(state));
 }
-
+//------------------------------------------------------------------------------
+void TProtocol::NextBlock(std::shared_ptr<ProtocolBase> block)
+{
+	Data.push_back(block);
+}
+//------------------------------------------------------------------------------
 void TProtocol::Save()
 {
 	 DescriptionFile->SaveToFile(FilePath+"\\Description.txt", TEncoding::Unicode);
 	 ProtocolFile->SaveToFile(FilePath+"\\Protocol.txt", TEncoding::Unicode);
 
-     MATFile *pmat = matOpen("Protocol.mat", "w");
+	 MATFile *pmat = matOpen("Protocol.mat", "w");
 
 	 // Subject
 	 const char *fieldnames[5] = {"id", "age", "gender", "hand", "edinburgh"};
 	 mxArray *sub = mxCreateStructMatrix(1, 1, 5, fieldnames);
-
 	 mxSetField(sub, 0, fieldnames[0], mxCreateDoubleScalar(0));
 	 mxSetField(sub, 0, fieldnames[1], mxCreateDoubleScalar(subject.Age.ToDouble()));
 	 mxSetField(sub, 0, fieldnames[2], mxCreateString(subject.Gender.c_str()));
 	 mxSetField(sub, 0, fieldnames[3], mxCreateString(subject.ActiveHand.c_str()));
-
-	 // edinburgh
 	 mxArray *edinburgh = mxCreateDoubleMatrix(10, 1, mxREAL);
 	 double *x = mxGetPr(edinburgh);
 	 std::fill(x, x+10, 22);
      mxSetField(sub, 0, fieldnames[4], edinburgh);
-
 	 matPutVariable(pmat, "subject", sub);
 	 mxDestroyArray(sub);
-     //////////////////////////////////////
+	 //////////////////////////////////////
 
-	 mxArray *protocol_cell = mxCreateCellMatrix(3, Data.size());
-	 for(int i = 0; i < Data.size(); i++)
+	 int colsize = Data.size()+InstructionSize();
+
+	 mxArray *protocol_cell = mxCreateCellMatrix(4, colsize);
+	 for(int i = 0, idx = 0; i < Data.size(); i++, idx++)
 	 {
-		mxArray *block;
-		AnsiString BlockName = NameBlocks[i];
-        double BlockStartTime = 0;
-
-		////////////////РљРѕРјР±РёРЅРёСЂРѕРІР°РЅРЅС‹Рµ С„СѓРЅРєС†РёРё//////////////////
-		if(NameBlocks[i] == "РљРѕРјР±РёРЅРёСЂРѕРІР°РЅРЅС‹Рµ С„СѓРЅРєС†РёРё")
-		{
-			const char *fieldnames[8] = {"TimeLineName", "TimeLine", "Stimuls", "StimulsName", "GuideTime", "CrossTime", "Goal", "Complexity"};
-			block = mxCreateStructMatrix(1, 1, 8, fieldnames);
-
-			const char *trialsname[2] = {"Matrix", "Response"};
-			mxArray *trialsname_cell = mxCreateCellMatrix(1,2);
-			mxSetCell(trialsname_cell,0, mxCreateString(trialsname[0]));
-            mxSetCell(trialsname_cell,1, mxCreateString(trialsname[1]));
-			mxSetField(block, 0, fieldnames[0], trialsname_cell);
-
-			const char *stimulsname[2] = {"Matrix","Result"};
-			mxArray *stimulsname_cell = mxCreateCellMatrix(1,2);
-			mxSetCell(stimulsname_cell,0, mxCreateString(stimulsname[0]));
-            mxSetCell(stimulsname_cell,1, mxCreateString(stimulsname[1]));
-			mxSetField(block, 0, fieldnames[3], stimulsname_cell);
-
-			int size = Data[i].size()-1;
-			mxArray *Trials = mxCreateDoubleMatrix(size, 2, mxREAL);
-			double *trials_ptr = mxGetPr(Trials);
-
-			mxArray *stimul_cell = mxCreateCellMatrix(size, 2);
-			for(int j = 0; j < Data[i].size(); j++)
-			{
-				TFunctionCombination::TrialProtocol* Trial = static_cast<TFunctionCombination::TrialProtocol*>(Data[i][j].get());
-
-				if(j == 0) {
-					 BlockStartTime = Trial->INFO_TIME;
-					 mxSetField(block, 0, fieldnames[4], mxCreateDoubleScalar(Trial->INFO_TIME));
-					 mxSetField(block, 0, fieldnames[5], mxCreateDoubleScalar(Trial->PLUS_TIME));
-					 mxSetField(block, 0, fieldnames[6], mxCreateDoubleScalar(Trial->number));
-                     mxSetField(block, 0, fieldnames[7], mxCreateDoubleScalar(Trial->complexity));
-				} else{
-					 trials_ptr[size*0+j-1] = Trial->MATRIX_TIME;
-					 trials_ptr[size*1+j-1] = Trial->MATRIX_CLICK_TIME;
-
-					 mxArray *mat = mxCreateDoubleMatrix(1, Trial->varray.size(), mxREAL);
-					 for(int k = 0; k < Trial->varray.size(); k++) mxGetPr(mat)[k] = Trial->varray[k];
-
-					 mxSetCell(stimul_cell,mxGetM(stimul_cell)*0+j-1, mat);
-					 mxSetCell(stimul_cell,mxGetM(stimul_cell)*1+j-1, mxCreateDoubleScalar(Trial->click.numbers));
-				}
-			}
-			mxSetField(block, 0, fieldnames[1], Trials);
-			mxSetField(block, 0, fieldnames[2], stimul_cell);
+		// Instructions
+		if(Data[i]->InstructionTime){
+			int sz = mxGetM(protocol_cell);
+			mxSetCell(protocol_cell,sz*idx,   mxCreateString(u8"Инструкция"));
+			mxSetCell(protocol_cell,sz*idx+1, mxCreateDoubleScalar(Data[i]->InstructionTime));
+			mxSetCell(protocol_cell,sz*idx+2, mxCreateDoubleScalar(0));
+			mxSetCell(protocol_cell,sz*idx+3, mxCreateDoubleScalar(0));
+			idx++;
 		}
-		////////////////Р­Р»РµРјРµРЅС‚Р°СЂРЅС‹Рµ РєРѕРіРЅРёС‚РёРІРЅС‹Рµ С„СѓРЅРєС†РёРё//////////////////
-		else if(NameBlocks[i] == "Р­Р»РµРјРµРЅС‚Р°СЂРЅС‹Рµ РєРѕРіРЅРёС‚РёРІРЅС‹Рµ С„СѓРЅРєС†РёРё")
+
+		const char *fieldnames[4] = {"TimeLineName", "TimeLine", "StimulsName", "Stimuls"};
+		mxArray *block = mxCreateStructMatrix(1, 1, 4, fieldnames);
+
+		AnsiString BlockName = Data[i]->BlockName;
+		double BlockStartTime = 0;
+
+		////////////////Комбинированные функции//////////////////
+		if(Data[i]->BlockName == "Комбинированные функции")
 		{
-			TElementaryCognitiveFunctions::TrialProtocol* Trial = static_cast<TElementaryCognitiveFunctions::TrialProtocol*>(Data[i][0].get());
-			if(Trial->BACKGROUND_TIME != 0) {
-			 BlockName = "Р¤РѕРЅ";
-			 BlockStartTime = Trial->BACKGROUND_TIME;
-			}
-			else if(Trial->PAUSE_TIME != 0)
-			{
-			 BlockName = "РџР°СѓР·Р°";
-			 BlockStartTime = Trial->PAUSE_TIME;
-			}
-			block = mxCreateDoubleScalar(0);
-		}
-		////////////////"РњРµРЅС‚Р°Р»СЊРЅР°СЏ Р°СЂРёС„РјРµС‚РёРєР°"//////////////////
-		else if(NameBlocks[i] == "РњРµРЅС‚Р°Р»СЊРЅР°СЏ Р°СЂРёС„РјРµС‚РёРєР°")
-		{
-			const char *fieldnames[4] = {"TimeLineName", "TimeLine", "Stimuls", "StimulsName"};
-			block = mxCreateStructMatrix(1, 1, 4, fieldnames);
+			typedef TFunctionCombination::DProtocol::Trial fcTrial;
+			TFunctionCombination::DProtocol* proto_ptr = static_cast<TFunctionCombination::DProtocol*>(Data[i].get());
 
-			const char *timelinename[4] = {"Cross", "Equation", "Response", "Blank"};
-			mxArray *timelinename_cell = mxCreateCellMatrix(1,4);
-			for(int j = 0; j < 4; j++) mxSetCell(timelinename_cell,j, mxCreateString(timelinename[j]));
-			mxSetField(block, 0, fieldnames[0], timelinename_cell);
+			BlockStartTime = proto_ptr->PLUS_TIME;
 
-            const int stimul_count = 4;
-			const char *stimulsname[stimul_count] = {"X","N","R","Result"};
-			mxArray *stimulsname_cell = mxCreateCellMatrix(1,stimul_count);
-			for(int j = 0; j < stimul_count; j++) mxSetCell(stimulsname_cell,j, mxCreateString(stimulsname[j]));
-			mxSetField(block, 0, fieldnames[3], stimulsname_cell);
+			mxArray* timelineName = mCreateStringArray({"Cross", "Matrix", "UserClick"});
+			mxSetField(block, 0, fieldnames[0], timelineName);
 
-			mxArray *timeline = mxCreateDoubleMatrix(Data[i].size(), 4, mxREAL);
+			mxArray* stimulsName = mCreateStringArray({"MatrixShown","UserSelection"});
+			mxSetField(block, 0, fieldnames[2], stimulsName);
+
+			mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
 			double *timeline_ptr = mxGetPr(timeline);
-			mxArray *stimul_cell = mxCreateCellMatrix(Data[i].size(), stimul_count);
+			mxArray *stimuls_cell = mxCreateCellMatrix(proto_ptr->Trials.size(), mxGetN(stimulsName));
 
-			size_t size =  Data[i].size();
-			for(int j = 0; j < Data[i].size(); j++)
+			for(int j = 0; j < proto_ptr->Trials.size(); j++)
 			{
-			   TMentalArithmeticBlock::TrialProtocol* Trial = static_cast<TMentalArithmeticBlock::TrialProtocol*>(Data[i][j].get());
-			   if(j == 0) BlockStartTime = Trial->PLUS_TIME;
+				fcTrial* Trial = static_cast<fcTrial*>(proto_ptr->Trials[j].get());
+				int size = proto_ptr->Trials.size();
 
-			   timeline_ptr[size*0+j] = Trial->PLUS_TIME;
-			   timeline_ptr[size*1+j] = Trial->EQUATION_TIME;
-			   timeline_ptr[size*2+j] = Trial->click.time;
-			   timeline_ptr[size*3+j] = Trial->BLANK_TIME;
+				timeline_ptr[size*0+j] = proto_ptr->PLUS_TIME;
+				timeline_ptr[size*1+j] = Trial->StateTime[TFunctionCombination::State::MATRIX];
+				timeline_ptr[size*2+j] = Trial->StateTime[TFunctionCombination::State::CLICK];
 
-			   mxSetCell(stimul_cell,mxGetM(stimul_cell)*0+j, mxCreateDoubleScalar(Trial->X));
-			   mxSetCell(stimul_cell,mxGetM(stimul_cell)*1+j, mxCreateDoubleScalar(Trial->N));
-			   mxSetCell(stimul_cell,mxGetM(stimul_cell)*2+j, mxCreateDoubleScalar(Trial->R));
-               mxSetCell(stimul_cell,mxGetM(stimul_cell)*3+j, mxCreateDoubleScalar(Trial->click.numbers));
+				mxArray *mat = mxCreateDoubleMatrix(1, Trial->varray.size(), mxREAL);
+				for(int k = 0; k < Trial->varray.size(); k++) mxGetPr(mat)[k] = Trial->varray[k];
+				mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, mat);
+				mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mxCreateDoubleScalar(Trial->Click.numbers));
 			}
 
 			mxSetField(block, 0, fieldnames[1], timeline);
-			mxSetField(block, 0, fieldnames[2], stimul_cell);
+			mxSetField(block, 0, fieldnames[3], stimuls_cell);
 		}
-		///////////////РћС€РёР±РєР°////////////////////////////////////////////
-		else {
-            block = mxCreateString("Error");
+		////////////////Элементарные когнитивные функции//////////////////
+		else if(Data[i]->BlockName == "Элементарные когнитивные функции")
+		{
+			typedef TElementaryCognitiveFunctions::DProtocol Protocol;
+			Protocol* protocol = static_cast<Protocol*>(Data[i].get());
+
+			if(protocol->BACKGROUND_TIME != 0) {
+			 BlockName = "Фон";
+			 BlockStartTime = protocol->BACKGROUND_TIME;
+			}
+			else if(protocol->PAUSE_TIME != 0)
+			{
+			 BlockName = "Пауза";
+			 BlockStartTime = protocol->PAUSE_TIME;
+			}
+            mxDestroyArray(block);
+			block = mxCreateDoubleScalar(0);
+		}
+		////////////////"Ментальная арифметика"//////////////////
+		else if(Data[i]->BlockName == "Ментальная арифметика")
+		{
+            typedef TMentalArithmeticBlock::DProtocol::Trial Trial;
+			TMentalArithmeticBlock::DProtocol* proto_ptr = static_cast<TMentalArithmeticBlock::DProtocol*>(Data[i].get());
+
+			mxArray* timelineName = mCreateStringArray({"Cross", "Equation", "UserClick", "BlackScreen"});
+			mxSetField(block, 0, fieldnames[0], timelineName);
+
+			mxArray* stimulsName = mCreateStringArray({"X","N","R","Result"});
+			mxSetField(block, 0, fieldnames[2], stimulsName);
+
+			mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
+			double *timeline_ptr = mxGetPr(timeline);
+			mxArray *stimuls_cell = mxCreateCellMatrix(proto_ptr->Trials.size(), mxGetN(stimulsName));
+
+            for(int j = 0; j < proto_ptr->Trials.size(); j++)
+			{
+				Trial* trial = static_cast<Trial*>(proto_ptr->Trials[j].get());
+				if(j == 0 ) BlockStartTime = trial->StateTime[TMentalArithmeticBlock::State::PLUS];
+				int size = proto_ptr->Trials.size();
+
+				for(int k = 0; k < 4; k++){
+				  timeline_ptr[size*k+j] = trial->StateTime[k];
+				}
+
+				mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, mxCreateDoubleScalar(trial->X));
+				mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mxCreateDoubleScalar(trial->N));
+				mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(trial->R));
+				mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*3+j, mxCreateDoubleScalar(trial->Click.numbers));
+
+			}
+            mxSetField(block, 0, fieldnames[1], timeline);
+			mxSetField(block, 0, fieldnames[3], stimuls_cell);
+		}
+		///////////////Ошибка////////////////////////////////////////////
+  		else {
+			mxDestroyArray(block);
+			block = mxCreateString("Error");
         }
 		//////////////////////////////////////////////////////////////
-		mxSetCell(protocol_cell,3*i, mxCreateString(AnsiToUtf8(BlockName).c_str()));
-		mxSetCell(protocol_cell,3*i+1, mxCreateDoubleScalar(BlockStartTime));
-		mxSetCell(protocol_cell,3*i+2, block);
+		mxSetCell(protocol_cell,mxGetM(protocol_cell)*idx,   mxCreateString(AnsiToUtf8(BlockName).c_str()));
+		mxSetCell(protocol_cell,mxGetM(protocol_cell)*idx+1, mxCreateDoubleScalar(BlockStartTime));
+		mxSetCell(protocol_cell,mxGetM(protocol_cell)*idx+2, block);
+		mxSetCell(protocol_cell,mxGetM(protocol_cell)*idx+3, mxCreateDoubleScalar(0));
 	 }
 
 	 matPutVariable(pmat, "protocol", protocol_cell);
 	 mxDestroyArray(protocol_cell);
-     matClose(pmat);
+	 matClose(pmat);
 }
-
+//------------------------------------------------------------------------------
 void TProtocol::Init(UnicodeString path, SubjectInfo _sub)
 {
 	FilePath = path;
 	subject = _sub;
 	DescriptionFile->Clear();
 	ProtocolFile->Clear();
-
-	AddDescription("Р­РєСЃРїРµСЂРёРјРµРЅС‚Р°Р»СЊРЅР°СЏ СЃРµСЃСЃРёСЏ: "+ TaskName+"\n");
-	AddDescription("РСЃРїС‹С‚СѓРµРјС‹Р№: "+_sub.LastName+" "+_sub.Name+" "+_sub.Patronymic+", "+_sub.Age+
-					" Р»РµС‚, "+"РђРєС‚РёРІРЅР°СЏ СЂСѓРєР°: "+_sub.ActiveHand+", РџРѕР»: "+_sub.Gender);
+	AddDescription("Экспериментальная сессия: "+ TaskName+"\n");
+	AddDescription("Испытуемый: "+_sub.LastName+" "+_sub.Name+" "+_sub.Patronymic+", "+_sub.Age+
+					" лет, "+"Активная рука: "+_sub.ActiveHand+", Пол: "+_sub.Gender);
 	AddDescription("\n____________________________________________________________________________________\n");
-
 	Data.clear();
-	NameBlocks.clear();
+    instruction_count = 0;
+	//NameBlocks.clear();
 	//Data.assign(24,std::vector<std::shared_ptr<TrialBase>>());
 }
-
+//------------------------------------------------------------------------------
 TProtocol::~TProtocol()
 {
 	delete ProtocolFile;

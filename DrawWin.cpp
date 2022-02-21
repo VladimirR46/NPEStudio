@@ -1,4 +1,4 @@
-п»ї//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #include <fmx.h>
 #pragma hdrstop
@@ -9,6 +9,7 @@
 #include <Diagnostics.hpp>
 #include "TSpiralTask.h"
 #include "TElementaryCognitiveFunctions.h"
+#include "TCubeTask.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -38,13 +39,13 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	TBaseTask::Timer = Timer1;
 	TBaseTask::Form = Form2;
 
-	// Р­Р»РµРјРµРЅС‚Р°СЂРЅС‹Рµ РєРѕРіРЅРёС‚РёРІРЅС‹Рµ С„СѓРЅРєС†РёРё
-	task_ptr ECFTask(new TElementaryCognitiveFunctions("Р­Р»РµРјРµРЅС‚Р°СЂРЅС‹Рµ РєРѕРіРЅРёС‚РёРІРЅС‹Рµ С„СѓРЅРєС†РёРё"));
+	// Элементарные когнитивные функции
+	task_ptr ECFTask(new TElementaryCognitiveFunctions("Элементарные когнитивные функции"));
 
-	task_ptr WMBlock(new TWorkingMemoryBlock(ECFTask.get(), "Р Р°Р±РѕС‡Р°СЏ РїР°РјСЏС‚СЊ"));
-	task_ptr VSBlock(new TVisualSearchBlock(ECFTask.get(), "Р’РёР·СѓР°Р»СЊРЅС‹Р№ РїРѕРёСЃРє"));
-	task_ptr MABlock(new TMentalArithmeticBlock(ECFTask.get(), "РњРµРЅС‚Р°Р»СЊРЅР°СЏ Р°СЂРёС„РјРµС‚РёРєР°"));
-	task_ptr FCBlock(new TFunctionCombination(ECFTask.get(), "РљРѕРјР±РёРЅРёСЂРѕРІР°РЅРЅС‹Рµ С„СѓРЅРєС†РёРё"));
+	task_ptr WMBlock(new TWorkingMemoryBlock(ECFTask.get(), "Рабочая память"));
+	task_ptr VSBlock(new TVisualSearchBlock(ECFTask.get(), "Визуальный поиск"));
+	task_ptr MABlock(new TMentalArithmeticBlock(ECFTask.get(), "Ментальная арифметика"));
+	task_ptr FCBlock(new TFunctionCombination(ECFTask.get(), "Комбинированные функции"));
 
 	ECFTask->AddBlock(WMBlock);
 	ECFTask->AddBlock(VSBlock);
@@ -52,9 +53,13 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	ECFTask->AddBlock(FCBlock);
 	Tasks.push_back(ECFTask);
 
-	// РЎРїРёСЂР°Р»СЊ
-	task_ptr STask(new TSpiralTask("РњРѕС‚РѕСЂРЅС‹Рµ СЂРµР°РєС†РёРё (РЎРїРёСЂР°Р»СЊ)"));
+	// Спираль
+	task_ptr STask(new TSpiralTask("Моторные реакции (Спираль)"));
 	Tasks.push_back(STask);
+
+	// Кубы
+	task_ptr CubeTask(new TCubeTask("Комбинированные функции"));
+    Tasks.push_back(CubeTask);
 
     for (int i = 0; i < Tasks.size(); i++) {
         Form1->ComboBox1->Items->Add(Tasks[i]->GetTaskName());
