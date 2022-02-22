@@ -55,7 +55,6 @@ void TCubeTask::DrawCube(TCubeF cube, float target_intensity)
 	bitmap->Canvas->Fill->Color = col2;
 	bitmap->Canvas->FillRect(TRectF(cube.point[5]+center-TPointF(8,8), cube.point[5]+center+TPointF(8,8)), 1);
 	bitmap->Canvas->EndScene();
-
 }
 
 TCubeTask::TCubeTask(AnsiString _name)
@@ -129,6 +128,9 @@ void TCubeTask::StateManager()
 			Trial->cube_type = complexity[TrialCount].cube_type;
 			Trial->intensity = complexity[TrialCount].intensity;
 			TrialCount++;
+
+			//bitmap->SaveToFile("cube"+IntToStr(TrialCount)+".bmp");
+
 			break;
 		}
 		default:
@@ -152,5 +154,5 @@ void TCubeTask::Draw()
 void TCubeTask::CloseTask()
 {
 	Timer->Interval = 0;
-    Protocol->SaveBlockTask();
+    Protocol->Save(GetTaskName());
 }

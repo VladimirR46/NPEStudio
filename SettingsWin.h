@@ -55,7 +55,7 @@ class TRange : public TCustomEdit
 
 			edit1 = new TEdit(layout);
 			edit1->Parent = layout;
-			edit2 = new TEdit(layout);
+            edit2 = new TEdit(layout);
 			edit2->Parent = layout;
 
 			label = new TLabel(layout);
@@ -65,7 +65,9 @@ class TRange : public TCustomEdit
 			label->StyledSettings = label->StyledSettings >> TStyledSetting::Size;
 			label->TextSettings->Font->Size = 20;
 			label->TextSettings->HorzAlign = TTextAlign::Center;
-            label->Margins->Bottom = 5;
+			label->Margins->Bottom = 5;
+
+
 
 			edit1->Align = TAlignLayout::Left;
 			edit1->Width = 35;

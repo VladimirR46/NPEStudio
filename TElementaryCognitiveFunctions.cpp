@@ -106,5 +106,5 @@ void TElementaryCognitiveFunctions::Draw()
 }
 void TElementaryCognitiveFunctions::CloseTask()
 {
-    Protocol->Save();
+    Protocol->Save(GetTaskName());
 }
