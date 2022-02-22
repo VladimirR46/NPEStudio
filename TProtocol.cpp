@@ -25,7 +25,7 @@ void TProtocol::NextBlock(std::shared_ptr<ProtocolBase> block)
 void TProtocol::Save(AnsiString TaskName)
 {
 	std::wstring path = std::filesystem::current_path(); //getting path
-    std::filesystem::current_path(FilePath.c_str()); //setting path
+	std::filesystem::current_path(FilePath.c_str()); //setting path
 __try {
 	/*FilePath*/
 	MATFile *pmat = matOpen("Protocol.mat", "w");
@@ -47,6 +47,9 @@ __try {
 		ShowMessage("Ошибка: Невозможно закрыть файл протокола");
 		return;
 	}
+
+	UnicodeString pt = "/select, "+GetHomePath()+"\\NPEStudio\\"+FilePath;
+    ShellExecute(NULL, NULL, L"explorer.exe", pt.w_str(), NULL, SW_SHOWNORMAL);
 }
 __finally{
 	  std::filesystem::current_path(path);

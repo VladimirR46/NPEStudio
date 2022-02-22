@@ -8,7 +8,9 @@
 
 SettingsBase::SettingsBase(UnicodeString _TaskName) : TaskName(_TaskName)
 {
-    CreateDir(SettingsDir);
+	SettingsDir = "Settings\\";
+	//SettingsDir = GetHomePath()+"\\NPEStudio\\Settings\\";
+	CreateDir(SettingsDir);
 }
 
 bool SettingsBase::Load(UnicodeString FileName)

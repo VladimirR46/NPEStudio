@@ -13,8 +13,6 @@
 #include <System.JSON.hpp>
 #include <map>
 
-#define SettingsDir "Settings\\"
-
 using namespace std;
 
 
@@ -83,7 +81,7 @@ public:
 private:
 	UnicodeString TaskName;
 	parameter_list parameters;
-
+    AnsiString SettingsDir;
 };
 
 
