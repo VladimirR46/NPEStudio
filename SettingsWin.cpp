@@ -164,6 +164,8 @@ void __fastcall TForm3::TreeView1Change(TObject *Sender)
 {
     if(!TreeView1->Selected)  return;
 
+    Label1->Text = TreeView1->Selected->Text;
+
 	if(TreeView1->Selected->ParentItem()){
 		if(TreeView1->Selected->ParentItem()->Index == 0){
             TabControl1->TabIndex = TreeView1->Selected->Index+2;
@@ -177,8 +179,6 @@ void __fastcall TForm3::TreeView1Change(TObject *Sender)
     }
 
 	TabControl1->TabIndex = 0;
-
-	Label1->Text = TreeView1->Selected->Text;
 
     std::vector<task_ptr>& Tasks = Form2->Tasks;
 	SettingsBase *settings;
