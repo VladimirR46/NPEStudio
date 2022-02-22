@@ -21,6 +21,43 @@ bool isSavePress = false;
 //---------------------------------------------------------------------------
 __fastcall TForm3::TForm3(TComponent* Owner) : TForm(Owner) {}
 //---------------------------------------------------------------------------
+void __fastcall TForm3::SaveIDESettings()
+{
+    TStringList *jsonFile = new TStringList;
+	TJSONObject *o = new TJSONObject();
+	__try {
+
+		 o->AddPair( new TJSONPair("ShowFPS",CheckBox1->IsChecked) );
+		 o->AddPair( new TJSONPair("ShowDrawDevices",CheckBox2->IsChecked) );
+
+		 jsonFile->Text = o->ToString();
+		 jsonFile->SaveToFile(SettingsDir+"IDE.json", TEncoding::Unicode);
+	}
+    __finally
+	{
+	  o->Free();
+      jsonFile->Free();
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm3::LoadIDESettings()
+{
+	TStringList *jsonFile = new TStringList;
+	jsonFile->LoadFromFile(SettingsDir+"IDE.json", TEncoding::Unicode);
+
+	TJSONObject *o = (TJSONObject*) TJSONObject::ParseJSONValue(jsonFile->Text);
+
+	__try
+	{
+		CheckBox1->IsChecked = o->Values["ShowFPS"]->AsType<bool>();
+		CheckBox2->IsChecked = o->Values["ShowDrawDevices"]->AsType<bool>();
+	}
+	__finally {
+		o->Free();
+		jsonFile->Free();
+	}
+}
+//---------------------------------------------------------------------------
 void __fastcall TForm3::UpdateSettings(SettingsBase *settings)
 {
     ListBox1->Clear();
@@ -92,6 +129,8 @@ void __fastcall TForm3::FormShow(TObject* Sender)
 {
 	TreeView1->Items[Form1->ComboBox1->ItemIndex+1]->Select();
 	TreeView1->Items[Form1->ComboBox1->ItemIndex+1]->Expand();
+
+    LoadIDESettings();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm3::SaveSettings(SettingsBase *settings)
@@ -126,6 +165,8 @@ void __fastcall TForm3::SaveSettings(SettingsBase *settings)
 void __fastcall TForm3::FormHide(TObject* Sender)
 {
 	if(!isSavePress){
+		LoadIDESettings();
+
 		std::vector<task_ptr>& Tasks = Form2->Tasks;
 		for (int i = 0; i < Tasks.size(); i++) {
 			Tasks[i]->LoadSettings();
@@ -141,7 +182,12 @@ void __fastcall TForm3::FormHide(TObject* Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm3::FormCreate(TObject *Sender)
 {
-   	std::vector<task_ptr>& Tasks = Form2->Tasks;
+	SettingsDir = "Settings\\";
+    CreateDir(SettingsDir);
+	if(!FileExists(SettingsDir+"IDE.json")) SaveIDESettings();
+
+
+	std::vector<task_ptr>& Tasks = Form2->Tasks;
 
 	for (int i = 0; i < Tasks.size(); i++) {
 
@@ -202,6 +248,8 @@ void __fastcall TForm3::Button2Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm3::Button1Click(TObject *Sender)
 {
+    SaveIDESettings();
+
 	SaveSettings(CurSettings);
 
 	std::vector<task_ptr>& Tasks = Form2->Tasks;

@@ -10,6 +10,7 @@
 #include "TSpiralTask.h"
 #include "TElementaryCognitiveFunctions.h"
 #include "TCubeTask.h"
+#include "SettingsWin.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -68,7 +69,10 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormShow(TObject* Sender)
 {
-    Label2->Text = Canvas->ClassName();
+    Label1->Visible = Form3->CheckBox1->IsChecked;
+    Label2->Visible = Form3->CheckBox2->IsChecked;
+    //---------------------------------
+	Label2->Text = Canvas->ClassName();
 
 	SubjectInfo subject;
 	subject.LastName = Form1->Edit3->Text;

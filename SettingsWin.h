@@ -113,10 +113,13 @@ class TForm3 : public TForm
 	void __fastcall Button2Click(TObject *Sender);
 	void __fastcall Button1Click(TObject *Sender);
   private: // User declarations
+  	AnsiString SettingsDir;
   public: // User declarations
 	__fastcall TForm3(TComponent* Owner);
 	void __fastcall UpdateSettings(SettingsBase *settings);
 	void __fastcall SaveSettings(SettingsBase *settings);
+	void SaveIDESettings();
+    void LoadIDESettings();
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm3* Form3;
