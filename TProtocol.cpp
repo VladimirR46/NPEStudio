@@ -240,6 +240,48 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 		mxSetField(block, 0, fieldnames[1], timeline);
 		mxSetField(block, 0, fieldnames[3], stimuls_cell);
 	}
+    	////////////////"Рабочая память"//////////////////
+	else if(Data[i]->BlockName == "Рабочая память")
+	{
+		typedef TWorkingMemoryBlock::DProtocol::Trial Trial;
+		TWorkingMemoryBlock::DProtocol* proto_ptr = static_cast<TWorkingMemoryBlock::DProtocol*>(Data[i].get());
+
+        mxArray* timelineName = mCreateStringArray({"Cross", "Numbers", "BlackScreen1", "Stimul", "UserClick", "BlackScreen2"});
+		mxSetField(block, 0, fieldnames[0], timelineName);
+
+		mxArray* stimulsName = mCreateStringArray({"Numbers","Stimul","Result", "ResponseTimeOut"});
+		mxSetField(block, 0, fieldnames[2], stimulsName);
+
+        mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
+		double *timeline_ptr = mxGetPr(timeline);
+		mxArray *stimuls_cell = mxCreateCellMatrix(proto_ptr->Trials.size(), mxGetN(stimulsName));
+
+        for(int j = 0; j < proto_ptr->Trials.size(); j++)
+		{
+			Trial* trial = static_cast<Trial*>(proto_ptr->Trials[j].get());
+			if(j == 0 ) BlockStartTime = trial->StateTime[TWorkingMemoryBlock::State::PLUS];
+            int size = proto_ptr->Trials.size();
+
+			for(int k = 0; k < 6; k++){
+			  timeline_ptr[size*k+j] = trial->StateTime[k];
+			}
+
+			std::vector<AnsiString> array_lable;
+			for(int k = 0; k < 7; k++){
+				if(trial->varray[k] == 0) array_lable.push_back("*");
+                else array_lable.push_back(IntToStr(trial->varray[k]));
+            }
+            mxArray* array = mCreateStringArray(array_lable);
+
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, array);
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mxCreateDoubleScalar(trial->Stimul));
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(0));
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*3+j, mxCreateDoubleScalar(trial->ResponseTimeOut));
+		}
+
+		mxSetField(block, 0, fieldnames[1], timeline);
+		mxSetField(block, 0, fieldnames[3], stimuls_cell);
+	}
 	///////////////Ошибка////////////////////////////////////////////
 	else {
 		mxDestroyArray(block);

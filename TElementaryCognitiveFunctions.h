@@ -201,8 +201,8 @@ public:
 		NUMBERS,
 		BLANK,
 		SAMPLE,
-		BLANK2,
 		CLICK,
+		BLANK2,
         Size
 	};
 
@@ -212,7 +212,10 @@ public:
 		struct Trial
 		{
 			unsigned int StateTime[State::Size] = {0};
-            ClickInfo Click;
+			ClickInfo Click;
+			int ResponseTimeOut = 0;
+			int Stimul = 0;
+            std::vector<int> varray;
 		};
 		std::vector<std::shared_ptr<Trial>> Trials;
 
@@ -220,7 +223,8 @@ public:
 			std::shared_ptr<Trial> trial = std::make_shared<Trial>();
             Trials.push_back(trial);
 			return trial.get();
-        }
+		}
+
 	};
 
 	std::shared_ptr<ProtocolBase> CreateProtocol() override
@@ -343,7 +347,8 @@ public:
 				n1 = RandomRange(10,100);
 			while(find_element(array,7,n1));
 		}
-        return n1;
+        Trial->Stimul = n1;
+		return n1;
     }
 	void StateManager() override
 	{
@@ -377,6 +382,9 @@ public:
 				state = BLANK;
                 #ifdef PROTOCOL_LOGGER
 					Trial->StateTime[NUMBERS] = millis();
+					for(int i = 0; i < 7; i++) {
+						Trial->varray.push_back(array[i]);
+                    }
 				#endif
 				break;
 			case BLANK:
@@ -408,7 +416,8 @@ public:
 				state = BLANK2;
 				StateManager();
 				#ifdef PROTOCOL_LOGGER
-
+					Trial->ResponseTimeOut = millis();
+                    Trial->StateTime[CLICK] = millis();
 				#endif
 				break;
 			default:
