@@ -12,6 +12,7 @@ typedef unsigned int uint32_t;
 ///////////////////////////////////////////////////////////////////////////////
 class TVisualSearchBlock : public TBaseTask
 {
+public:
 	enum SettingsName : int
 	{
 		Enable = 0,
@@ -19,15 +20,18 @@ class TVisualSearchBlock : public TBaseTask
 		RangeBackground = 2,
         RangePlus = 3
 	};
+
 	enum State : int
 	{
+        INSTRUCTION = -1,
 		PLUS,
 		NUMBER,
 		TABLE,
 		BLANK,
-		CLICK
+		CLICK,
+        Size
 	};
-public:
+
 	TVisualSearchBlock(TBaseTask* _parent, AnsiString _name) : TBaseTask(_parent, _name)
 	{
 		if(!Settings->Load(_parent->GetTaskName())){
@@ -38,10 +42,36 @@ public:
 			Settings->Save(_parent->GetTaskName());
 		}
 	}
+    // Описание для протокола --------------------------------------------------
+	struct DProtocol : ProtocolBase
+	{
+		struct Trial
+		{
+			unsigned int StateTime[State::Size] = {0};
+			ClickInfo Click;
+		};
+		std::vector<std::shared_ptr<Trial>> Trials;
+
+		Trial* CreateTrial() {
+			std::shared_ptr<Trial> trial = std::make_shared<Trial>();
+            Trials.push_back(trial);
+			return trial.get();
+		}
+	};
+
+	std::shared_ptr<ProtocolBase> CreateProtocol() override
+	{
+		std::shared_ptr<DProtocol> protocol = std::make_shared<DProtocol>();
+		protocol->BlockName = GetTaskName();
+		OwnProtocol = protocol.get();
+		return protocol;
+	}
+	//--------------------------------------------------------------------------
 	void InitTask(AnsiString Path) override {
         state = PLUS;
 		TrialCount = 0;
 	}
+    //--------------------------------------------------------------------------
 	bool Finished() override {
 		if(Settings->get(Enable).ToInt() == 0) return true;
 		if(TrialCount >= Settings->getInt(TrialMax)*2){
@@ -50,6 +80,7 @@ public:
 		}
 		return false;
 	}
+    //--------------------------------------------------------------------------
 	bool isEnable() override {
       return (bool) Settings->getInt(Enable);
 	}
@@ -137,13 +168,11 @@ public:
     //--------------------------------------------------------------------------
 	void StateManager() override
 	{
-		range_t rge;
 		switch(state) {
 			case PLUS:
                 ClearCanva();
 				DrawPlus();
-				rge = Settings->getRange(RangePlus);
-				Timer->Interval = RandomRange(rge.min,rge.max);
+				Timer->Interval = Settings->getRandFromRange(RangePlus);
 				state = NUMBER;
 				break;
 			case NUMBER:
@@ -162,8 +191,7 @@ public:
 				break;
 			case BLANK:
 				ClearCanva();
-				rge = Settings->getRange(RangeBackground);
-				Timer->Interval = RandomRange(rge.min,rge.max);
+				Timer->Interval = Settings->getRandFromRange(RangeBackground);
 				state = PLUS;
                 TrialCount++;
 				break;
@@ -177,6 +205,9 @@ private:
     int TrialCount = 0;
 	int type_count[2];
 	int CurrentNumber;
+
+	DProtocol* OwnProtocol;
+    DProtocol::Trial* Trial;
 };
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
