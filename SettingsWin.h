@@ -106,6 +106,7 @@ class TForm3 : public TForm
 	TTabItem *TabItem3;
 	TCheckBox *CheckBox1;
 	TCheckBox *CheckBox2;
+	TCheckBox *CheckBox3;
     void __fastcall FormShow(TObject* Sender);
     void __fastcall FormHide(TObject* Sender);
 	void __fastcall FormCreate(TObject *Sender);

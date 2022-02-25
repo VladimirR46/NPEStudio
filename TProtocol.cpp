@@ -4,6 +4,7 @@
 #include "TElementaryCognitiveFunctions.h"
 #include "TCubeTask.h"
 #include <filesystem>
+#include "SettingsWin.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
@@ -48,8 +49,10 @@ __try {
 		return;
 	}
 
-	UnicodeString pt = "/select, "+GetHomePath()+"\\NPEStudio\\"+FilePath;
-    ShellExecute(NULL, NULL, L"explorer.exe", pt.w_str(), NULL, SW_SHOWNORMAL);
+	if(Form3->CheckBox3->IsChecked) {
+		UnicodeString pt = "/select, "+GetHomePath()+"\\NPEStudio\\"+FilePath;
+		ShellExecuteW(NULL, NULL, L"explorer.exe", pt.w_str(), NULL, SW_SHOWNORMAL);
+	}
 }
 __finally{
 	  std::filesystem::current_path(path);

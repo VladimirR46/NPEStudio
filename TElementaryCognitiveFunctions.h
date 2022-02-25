@@ -182,6 +182,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class TWorkingMemoryBlock : public TBaseTask
 {
+public:
 	enum SettingsName : int
 	{
 		Enable = 0,
@@ -190,18 +191,47 @@ class TWorkingMemoryBlock : public TBaseTask
 		RangePlus = 3,
 		RangeBackground2 = 4,
 		RangeStimul = 5,
-        RangeStimulWait = 6
+		RangeStimulWait = 6
 	};
+
 	enum State : int
 	{
-		PLUS = 10,
+        INSTRUCTION = -1,
+		PLUS,
 		NUMBERS,
 		BLANK,
 		SAMPLE,
 		BLANK2,
-        CLICK
+		CLICK,
+        Size
 	};
-public:
+
+	// Описание для протокола --------------------------------------------------
+	struct DProtocol : ProtocolBase
+	{
+		struct Trial
+		{
+			unsigned int StateTime[State::Size] = {0};
+            ClickInfo Click;
+		};
+		std::vector<std::shared_ptr<Trial>> Trials;
+
+		Trial* CreateTrial() {
+			std::shared_ptr<Trial> trial = std::make_shared<Trial>();
+            Trials.push_back(trial);
+			return trial.get();
+        }
+	};
+
+	std::shared_ptr<ProtocolBase> CreateProtocol() override
+	{
+		std::shared_ptr<DProtocol> protocol = std::make_shared<DProtocol>();
+		protocol->BlockName = GetTaskName();
+		OwnProtocol = protocol.get();
+		return protocol;
+	}
+	//--------------------------------------------------------------------------
+
 	TWorkingMemoryBlock(TBaseTask* _parent, AnsiString _name) : TBaseTask(_parent, _name)
 	{
 		if(!Settings->Load(_parent->GetTaskName())){
@@ -216,7 +246,7 @@ public:
 		}
 	}
 	void InitTask(AnsiString Path) override {
-		state = PLUS;
+		state = INSTRUCTION;
 		TrialCount = 0;
 		memset(array,0, sizeof(int)*7);
 		memset(complexity_count,0, sizeof(int)*3);
@@ -317,51 +347,69 @@ public:
     }
 	void StateManager() override
 	{
-		range_t rge;
+        old_state = state;
 		switch(state) {
+			case INSTRUCTION:
+                ClearCanva();
+				DrawText("Инструкция, рабочая память", 80);
+				state = CLICK;
+                Timer->Interval = 0;
+				#ifdef PROTOCOL_LOGGER
+					Protocol->SetInstractionTime(millis());
+				#endif
+				break;
 			case PLUS:
                 ClearCanva();
 				DrawPlus();
-					Protocol->AddData(millis(), state);
-				rge = Settings->getRange(RangePlus);
-				Timer->Interval = RandomRange(rge.min,rge.max);
+				Timer->Interval = Settings->getRandFromRange(RangePlus);
 				state = NUMBERS;
+                #ifdef PROTOCOL_LOGGER
+					Trial = OwnProtocol->CreateTrial();
+					Trial->StateTime[PLUS] = millis();
+				#endif
 				break;
 			case NUMBERS:
 				ClearCanva();
                 memset(array,0, sizeof(int)*7);
 				generate_numbers(array);
 				DrawSymbols(array,124);
-					Protocol->AddData(millis(), state);
-				rge = Settings->getRange(RangeStimul);
-				Timer->Interval = RandomRange(rge.min,rge.max);
+				Timer->Interval = Settings->getRandFromRange(RangeStimul);
 				state = BLANK;
+                #ifdef PROTOCOL_LOGGER
+					Trial->StateTime[NUMBERS] = millis();
+				#endif
 				break;
 			case BLANK:
 				ClearCanva();
-					Protocol->AddData(millis(), state);
-				rge = Settings->getRange(RangeBackground);
-				Timer->Interval  = RandomRange(rge.min,rge.max);
+				Timer->Interval  = Settings->getRandFromRange(RangeBackground);
 				state = SAMPLE;
+                #ifdef PROTOCOL_LOGGER
+					Trial->StateTime[BLANK] = millis();
+				#endif
 				break;
 			case SAMPLE:
 				DrawOneNumber(get_sample());
-					Protocol->AddData(millis(), state);
-				rge = Settings->getRange(RangeStimulWait);
-				Timer->Interval = RandomRange(rge.min,rge.max);
+				Timer->Interval = Settings->getRandFromRange(RangeStimulWait);
 				state = CLICK;
+                #ifdef PROTOCOL_LOGGER
+					Trial->StateTime[SAMPLE] = millis();
+				#endif
 				break;
 			case BLANK2:
-			    ClearCanva();
-                	Protocol->AddData(millis(), state);
-				rge = Settings->getRange(RangeBackground2);
-				Timer->Interval = RandomRange(rge.min,rge.max);
+				ClearCanva();
+				Timer->Interval = Settings->getRandFromRange(RangeBackground2);
 				state = PLUS;
-                TrialCount++;
+				TrialCount++;
+                #ifdef PROTOCOL_LOGGER
+					Trial->StateTime[BLANK2] = millis();
+				#endif
 				break;
    			case CLICK:
 				state = BLANK2;
 				StateManager();
+				#ifdef PROTOCOL_LOGGER
+
+				#endif
 				break;
 			default:
                 break;
@@ -370,16 +418,29 @@ public:
 	void UserMouseDown(int X, int Y) override {
 		 if(state == CLICK)
 		 {
-			state = BLANK2;
+            if(old_state == INSTRUCTION){
+				state = PLUS;
+			} else {
+				state = BLANK2;
+				#ifdef PROTOCOL_LOGGER
+					Trial->StateTime[CLICK] = millis();
+					Trial->Click = {X, Y, millis(), 0};
+				#endif
+            }
+
             StateManager();
 		 }
 	}
 private:
 	State state;
+    State old_state;
     int TrialCount = 0;
 	int array[7] = {0};
 	int complexity_count[3] = {0};
 	int samples_count[2] = {0};
+
+	DProtocol* OwnProtocol;
+    DProtocol::Trial* Trial;
 };
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -405,7 +466,7 @@ public:
 		Size
 	};
 
-	// Описание для протокола
+	// Описание для протокола --------------------------------------------------
 	struct DProtocol : ProtocolBase
 	{
 		struct Trial
@@ -430,7 +491,7 @@ public:
 		OwnProtocol = protocol.get();
 		return protocol;
 	}
-
+	//--------------------------------------------------------------------------
 	TMentalArithmeticBlock(TBaseTask* _parent, AnsiString _name) : TBaseTask(_parent, _name)
 	{
 		if(!Settings->Load(_parent->GetTaskName())){
