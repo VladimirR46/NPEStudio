@@ -17,8 +17,10 @@ public:
 	{
 		Enable = 0,
 		TrialMax = 1,
-		RangeBackground = 2,
-        RangePlus = 3
+		RangeNumber = 2,
+		RangeBackground = 3,
+		RangeTable = 4,
+		RangePlus = 5
 	};
 
 	enum State : int
@@ -37,6 +39,7 @@ public:
 		if(!Settings->Load(_parent->GetTaskName())){
 			Settings->Add(Enable, "Включить", GuiType::TCheckBox , 1);
 			Settings->Add(TrialMax, "Триалы", GuiType::TEdit, 8);
+            Settings->Add(RangeNumber, "Число", GuiType::TRange, "1000:1500");
 			Settings->Add(RangeBackground, "Фон", GuiType::TRange, "1000:1500");
 			Settings->Add(RangePlus, "Крест", GuiType::TRange, "1000:1500");
 			Settings->Save(_parent->GetTaskName());
@@ -49,6 +52,8 @@ public:
 		{
 			unsigned int StateTime[State::Size] = {0};
 			ClickInfo Click;
+			int number;
+            std::vector<int> array;
 		};
 		std::vector<std::shared_ptr<Trial>> Trials;
 
@@ -92,6 +97,7 @@ public:
 		while(int(number/10) == int(number%10))
 			number  = RandomRange(10,100);
 		CurrentNumber = number;
+		Trial->number = CurrentNumber;
 	}
 	//--------------------------------------------------------------------------
 	int GetTableType()
@@ -161,48 +167,81 @@ public:
 	{
 		if(state == CLICK)
 		{
-			state = BLANK;
-            StateManager();
+			if(old_state == INSTRUCTION){
+				state = PLUS;
+			} else {
+				state = BLANK;
+				#ifdef PROTOCOL_LOGGER
+					Trial->StateTime[CLICK] = millis();
+					Trial->Click = {X, Y, millis(), 0};
+				#endif
+            }
+			StateManager();
 		}
 	}
     //--------------------------------------------------------------------------
 	void StateManager() override
 	{
+        old_state = state;
 		switch(state) {
+			case INSTRUCTION:
+                ClearCanva();
+				DrawText("Инструкция, визуальный поиск", 80);
+				state = CLICK;
+                Timer->Interval = 0;
+				#ifdef PROTOCOL_LOGGER
+					Protocol->SetInstractionTime(millis());
+				#endif
+				break;
 			case PLUS:
                 ClearCanva();
 				DrawPlus();
 				Timer->Interval = Settings->getRandFromRange(RangePlus);
 				state = NUMBER;
+                #ifdef PROTOCOL_LOGGER
+					Trial = OwnProtocol->CreateTrial();
+					Trial->StateTime[PLUS] = millis();
+				#endif
 				break;
 			case NUMBER:
 				ClearCanva();
 				GetRandomNumber();
 				DrawOneNumber(CurrentNumber);
-				Timer->Interval = RandomRange(1500,2000);
+				Timer->Interval = Settings->getRandFromRange(RangeNumber);
 				state = TABLE;
+                #ifdef PROTOCOL_LOGGER
+					Trial->StateTime[NUMBER] = millis();
+				#endif
 				break;
 			case TABLE:
 				int numbers[25];
 				GetNumberArray(CurrentNumber, numbers, 25, GetTableType());
 				ClearCanva();
 				DrawTable(numbers, 25);
-                state = CLICK;
+                //Timer->Interval = Settings->getRandFromRange(RangeTable);
+				state = CLICK;
+				#ifdef PROTOCOL_LOGGER
+					Trial->StateTime[TABLE] = millis();
+                    Trial->array.assign(numbers,numbers+25);
+				#endif
 				break;
 			case BLANK:
 				ClearCanva();
 				Timer->Interval = Settings->getRandFromRange(RangeBackground);
 				state = PLUS;
-                TrialCount++;
+				TrialCount++;
+				#ifdef PROTOCOL_LOGGER
+					Trial->StateTime[BLANK] = millis();
+				#endif
 				break;
 			default:
 				break;
 		}
-        Protocol->AddData(millis(), state);
 	}
 private:
 	State state;
-    int TrialCount = 0;
+    State old_state;
+	int TrialCount = 0;
 	int type_count[2];
 	int CurrentNumber;
 

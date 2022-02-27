@@ -240,7 +240,7 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 		mxSetField(block, 0, fieldnames[1], timeline);
 		mxSetField(block, 0, fieldnames[3], stimuls_cell);
 	}
-    	////////////////"Рабочая память"//////////////////
+    ////////////////"Рабочая память"//////////////////
 	else if(Data[i]->BlockName == "Рабочая память")
 	{
 		typedef TWorkingMemoryBlock::DProtocol::Trial Trial;
@@ -278,6 +278,44 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(0));
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*3+j, mxCreateDoubleScalar(trial->ResponseTimeOut));
 		}
+
+		mxSetField(block, 0, fieldnames[1], timeline);
+		mxSetField(block, 0, fieldnames[3], stimuls_cell);
+	}
+    ////////////////"Визуальный поиск"//////////////////
+	else if(Data[i]->BlockName == "Визуальный поиск")
+	{
+		typedef TVisualSearchBlock::DProtocol::Trial Trial;
+		TVisualSearchBlock::DProtocol* proto_ptr = static_cast<TVisualSearchBlock::DProtocol*>(Data[i].get());
+
+		mxArray* timelineName = mCreateStringArray({"Cross", "Number", "Table", "UserClick", "BlackScreen"});
+		mxSetField(block, 0, fieldnames[0], timelineName);
+
+		mxArray* stimulsName = mCreateStringArray({"Numbers", "Table", "Result" });
+		mxSetField(block, 0, fieldnames[2], stimulsName);
+
+        mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
+		double *timeline_ptr = mxGetPr(timeline);
+		mxArray *stimuls_cell = mxCreateCellMatrix(proto_ptr->Trials.size(), mxGetN(stimulsName));
+
+		for(int j = 0; j < proto_ptr->Trials.size(); j++)
+		{
+			Trial* trial = static_cast<Trial*>(proto_ptr->Trials[j].get());
+			if(j == 0 ) BlockStartTime = trial->StateTime[TVisualSearchBlock::State::PLUS];
+            int size = proto_ptr->Trials.size();
+
+			for(int k = 0; k < 5; k++){
+			  timeline_ptr[size*k+j] = trial->StateTime[k];
+			}
+
+			mxArray *mat = mxCreateDoubleMatrix(1, trial->array.size(), mxREAL);
+			for(int k = 0; k < trial->array.size(); k++) mxGetPr(mat)[k] = trial->array[k];
+
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, mxCreateDoubleScalar(trial->number));
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mat);
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(0));
+		}
+
 
 		mxSetField(block, 0, fieldnames[1], timeline);
 		mxSetField(block, 0, fieldnames[3], stimuls_cell);
