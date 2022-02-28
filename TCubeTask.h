@@ -32,7 +32,8 @@ public:
 		 INSTRUCTION = -1,
 		 NOISE,
 		 CUBE,
-         Size
+		 Size,
+         CONCLUSION
 	} state;
 
 	// Описание для протокола --------------------------------------------------
@@ -72,6 +73,7 @@ public:
 	void DrawCube(TCubeF cube, float target_intensity);
 private:
 	int TrialCount = 0;
+    bool isFinished = false;
 
 	std::vector<TComplexity> complexity;
 	DProtocol* OwnProtocol;

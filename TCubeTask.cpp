@@ -76,6 +76,7 @@ void TCubeTask::InitTask(AnsiString Path)
 {
     TrialCount = 0;
 	state = INSTRUCTION;
+    isFinished = false;
     complexity.clear();
 
 	std::vector<float> _complexity = {0.4, 0.6, 0.15, 0.25, 0.45, 0.55, 0.75, 0.85};
@@ -133,14 +134,25 @@ void TCubeTask::StateManager()
 
 			break;
 		}
+		case CONCLUSION:
+		{
+			ClearCanva(TAlphaColorRec::White);
+			DrawText("Спасибо за внимание!", 80, TAlphaColorRec::Black);
+			Timer->Interval = 2000;
+            isFinished = true;
+			break;
+        }
 		default:
 			break;
 	}
 }
 bool TCubeTask::Finished()
 {
-    if(TrialCount == complexity.size()) return true;
-	return false;
+	if(TrialCount == complexity.size()) {
+        state = CONCLUSION;
+	}
+
+	return isFinished;
 }
 void TCubeTask::UserMouseDown(int X, int Y)
 {
