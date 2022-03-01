@@ -52,11 +52,11 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	ECFTask->AddBlock(VSBlock);
 	ECFTask->AddBlock(MABlock);
 	ECFTask->AddBlock(FCBlock);
-	Tasks.push_back(ECFTask);
+	//Tasks.push_back(ECFTask);
 
 	// Спираль
 	task_ptr STask(new TSpiralTask("Моторные реакции (Спираль)"));
-	Tasks.push_back(STask);
+	//Tasks.push_back(STask);
 
 	// Кубы
 	task_ptr CubeTask(new TCubeTask("Кубы Неккера"));
@@ -153,7 +153,8 @@ void __fastcall TForm2::PaintBox1Paint(TObject *Sender, TCanvas *Canvas)
 	   curtime = sw.GetTimeStamp();
 	   frames = 0;
     }
-    frames++;
+	frames++;
+
 
 	if(Canvas->BeginScene())
 	{

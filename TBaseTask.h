@@ -48,7 +48,8 @@ class TBaseTask
 	void DrawText(AnsiString text, int size, TAlphaColor color = TAlphaColorRec::White);
 	void DrawSymbols(int array[], int FontSize);
 	void DrawNoise();
-    void DrawPoint(int size);
+	void DrawPoint(int size);
+    void DrawPoint(int CenterX, int CenterY, int size, TAlphaColor color);
 	void ClearCanva();
 	void ClearCanva(TAlphaColor color);
 

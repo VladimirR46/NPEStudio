@@ -92,6 +92,18 @@ void TBaseTask::DrawPoint(int size)
 	//bitmap->Canvas->DrawEllipse(MyRect, 1);
     bitmap->Canvas->EndScene();
 }
+
+void TBaseTask::DrawPoint(int CenterX, int CenterY, int size, TAlphaColor color)
+{
+	TRectF MyRect(CenterX-size, CenterY-size, CenterX+size, CenterY+size);
+	bitmap->Canvas->BeginScene();
+	//bitmap->Canvas->Stroke->Color = TAlphaColorRec::Red;
+	//bitmap->Canvas->Stroke->Thickness = 4;
+	bitmap->Canvas->Fill->Color = color;
+    bitmap->Canvas->FillEllipse(MyRect, 1);
+	//bitmap->Canvas->DrawEllipse(MyRect, 1);
+    bitmap->Canvas->EndScene();
+}
 //--------------------------------------------------------------------------
 void TBaseTask::DrawText(AnsiString text, int size, TAlphaColor color)
 {

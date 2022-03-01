@@ -112,6 +112,7 @@ void TCubeTask::StateManager()
 		case NOISE:
 		{
 			DrawNoise();
+			DrawPoint(bitmap->Width-60, bitmap->Height-60, 20, TAlphaColorRec::Black);
 			Timer->Interval = Settings->getRandFromRange(RangeNoise);
 			state = CUBE;
 			Trial = OwnProtocol->CreateTrial(); // Protocol
@@ -137,7 +138,7 @@ void TCubeTask::StateManager()
 		case CONCLUSION:
 		{
 			ClearCanva(TAlphaColorRec::White);
-			DrawText("Спасибо за внимание!", 80, TAlphaColorRec::Black);
+			DrawText("Спасибо за участие!", 80, TAlphaColorRec::Black);
 			Timer->Interval = 2000;
             isFinished = true;
 			break;

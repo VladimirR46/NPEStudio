@@ -179,6 +179,8 @@ void __fastcall TForm3::FormCreate(TObject *Sender)
 		}
 		TreeView1->AddObject(ItemTask);
 	}
+
+    LoadIDESettings();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm3::TreeView1Change(TObject *Sender)
