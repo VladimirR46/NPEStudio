@@ -113,6 +113,7 @@ class TForm3 : public TForm
 	void __fastcall TreeView1Change(TObject *Sender);
 	void __fastcall Button2Click(TObject *Sender);
 	void __fastcall Button1Click(TObject *Sender);
+    void __fastcall ButtonClick(TObject *Sender);
   private: // User declarations
   	AnsiString SettingsDir;
   public: // User declarations

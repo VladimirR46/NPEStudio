@@ -29,7 +29,8 @@
 #include <FMX.Layouts.hpp>
 #include <FMX.ImgList.hpp>
 
-#include <System.ImageList.hpp>//---------------------------------------------------------------------------
+#include <System.ImageList.hpp>
+#include <FMX.Dialogs.hpp>//---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
   __published: // IDE-managed Components
@@ -38,7 +39,6 @@ class TForm1 : public TForm
     TMainMenu* MainMenu1;
     TMenuItem* MenuItem1;
     TMenuItem* MenuItem2;
-	TButton *Button3;
 	TMenuItem *MenuItem3;
 	TMenuItem *MenuItem4;
 	TMenuItem *MenuItem5;
@@ -67,7 +67,6 @@ class TForm1 : public TForm
 	TButton *Button1;
 	TButton *Button2;
     void __fastcall ComboBox1Change(TObject* Sender);
-	void __fastcall Button3Click(TObject *Sender);
 	void __fastcall MenuItem3Click(TObject *Sender);
 	void __fastcall MenuItem5Click(TObject *Sender);
 	void __fastcall Button4Click(TObject *Sender);

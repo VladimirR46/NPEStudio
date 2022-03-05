@@ -21,7 +21,8 @@ enum class GuiType : int {
 	TComboColorBox,
 	TSwitch,
 	TCheckBox,
-    TRange
+	TRange,
+    TDirectoryPath
 };
 
 struct TParameter

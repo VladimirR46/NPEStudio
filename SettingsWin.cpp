@@ -109,8 +109,39 @@ void __fastcall TForm3::UpdateSettings(SettingsBase *settings)
 			range->Text = it->second.value;
 			object[i] = range;
 		}
+
+		if(it->second.type == GuiType::TDirectoryPath)
+		{
+           item->Padding->Left = 120;
+		   TEdit *edit = new TEdit(item);
+		   edit->Parent = item;
+		   edit->Align = TAlignLayout::VertCenter;
+
+		   TEditButton *ebutton = new TEditButton(edit);
+		   ebutton->Parent = edit;
+           ebutton->StyledSettings = ebutton->StyledSettings >> TStyledSetting::Family;
+		   ebutton->TextSettings->Font->Family = "Bodoni MT";
+		   ebutton->Text = "...";
+		   ebutton->Name = "DirPatchButton";
+		   ebutton->OnClick = ButtonClick;
+
+		   edit->Text = it->second.value;
+		   object[i] = edit;
+        }
 	}
 	ListBox1->EndUpdate();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm3::ButtonClick(TObject *Sender)
+{
+	if (((TControl*)Sender)->Name == "DirPatchButton")
+	{
+		TCustomEdit *edit = ((TEditButton*)Sender)->GetEdit();
+
+		UnicodeString patch;
+		if (SelectDirectory("Укажите путь к папке", "",patch))
+			edit->Text = patch;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm3::FormShow(TObject* Sender)
@@ -124,8 +155,10 @@ void __fastcall TForm3::SaveSettings(SettingsBase *settings)
 {
 	parameter_list &list = settings->GetParametersList();
 	int i = 0;
-	for (parameter_list::iterator it = list.begin(); it != list.end(); it++, i++) {
-		if (it->second.type == GuiType::TEdit) {
+	for (parameter_list::iterator it = list.begin(); it != list.end(); it++, i++)
+	{
+		if (it->second.type == GuiType::TEdit || it->second.type == GuiType::TDirectoryPath)
+		{
 		   TEdit *edit = static_cast<TEdit*>(object[i]);
 		   it->second.value = edit->Text;
 		}
@@ -142,6 +175,7 @@ void __fastcall TForm3::SaveSettings(SettingsBase *settings)
 			TRange *range = static_cast<TRange*>(object[i]);
 			it->second.value = range->Text;
 		}
+
     }
 }
 //---------------------------------------------------------------------------

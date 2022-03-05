@@ -11,6 +11,7 @@
 #include "TElementaryCognitiveFunctions.h"
 #include "TCubeTask.h"
 #include "SettingsWin.h"
+#include "TLearningTask.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -52,15 +53,19 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	ECFTask->AddBlock(VSBlock);
 	ECFTask->AddBlock(MABlock);
 	ECFTask->AddBlock(FCBlock);
-	//Tasks.push_back(ECFTask);
+	Tasks.push_back(ECFTask);
 
 	// Спираль
 	task_ptr STask(new TSpiralTask("Моторные реакции (Спираль)"));
-	//Tasks.push_back(STask);
+	Tasks.push_back(STask);
 
 	// Кубы
 	task_ptr CubeTask(new TCubeTask("Кубы Неккера"));
-    Tasks.push_back(CubeTask);
+	Tasks.push_back(CubeTask);
+
+	// Обучение
+	task_ptr LearningTask(new TLearningTask("Обучение"));
+	Tasks.push_back(LearningTask);
 
     for (int i = 0; i < Tasks.size(); i++) {
         Form1->ComboBox1->Items->Add(Tasks[i]->GetTaskName());

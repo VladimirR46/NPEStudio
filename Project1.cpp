@@ -10,7 +10,6 @@ USEFORM("SettingsWin.cpp", Form3);
 USEFORM("DrawWin.cpp", Form2);
 USEFORM("MainWin.cpp", Form1);
 //---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
 extern "C" int FMXmain()
 {
 	try
