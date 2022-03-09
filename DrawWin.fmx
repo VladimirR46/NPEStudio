@@ -2,8 +2,8 @@ object Form2: TForm2
   Left = 0
   Top = 0
   Caption = 'Form2'
-  ClientHeight = 303
-  ClientWidth = 434
+  ClientHeight = 498
+  ClientWidth = 645
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -15,22 +15,23 @@ object Form2: TForm2
   DesignerMasterStyle = 0
   object Timer1: TTimer
     Enabled = False
+    Interval = 500
     OnTimer = Timer1Timer
     Left = 72
     Top = 88
   end
   object Panel1: TPanel
     Align = Client
-    Size.Width = 434.000000000000000000
-    Size.Height = 303.000000000000000000
+    Size.Width = 645.000000000000000000
+    Size.Height = 498.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     object PaintBox1: TPaintBox
       Align = Client
       ClipChildren = True
       Cursor = crCross
-      Size.Width = 434.000000000000000000
-      Size.Height = 303.000000000000000000
+      Size.Width = 645.000000000000000000
+      Size.Height = 498.000000000000000000
       Size.PlatformDefault = False
       OnMouseDown = PaintBox1MouseDown
       OnMouseMove = PaintBox1MouseMove
@@ -67,5 +68,9 @@ object Form2: TForm2
     OnTimer = Timer2Timer
     Left = 24
     Top = 88
+  end
+  object MediaPlayer1: TMediaPlayer
+    Left = 48
+    Top = 168
   end
 end

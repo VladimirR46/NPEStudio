@@ -19,6 +19,7 @@
 #include <FMXTee.Engine.hpp>
 #include <FMXTee.Procs.hpp>
 #include <FMXTee.Series.hpp>
+#include <FMX.Media.hpp>
 //#include <boost/shared_ptr.hpp>
 #include <vector>
 //---------------------------------------------------------------------------
@@ -31,6 +32,7 @@ __published: // IDE-managed Components
 	TTimer *Timer2;
 	TLabel *Label1;
 	TLabel *Label2;
+	TMediaPlayer *MediaPlayer1;
     void __fastcall FormKeyDown(TObject* Sender, WORD &Key,
         System::WideChar &KeyChar, TShiftState Shift);
     void __fastcall FormCreate(TObject* Sender);

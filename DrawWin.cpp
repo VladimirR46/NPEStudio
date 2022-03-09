@@ -64,7 +64,7 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	Tasks.push_back(CubeTask);
 
 	// Обучение
-	task_ptr LearningTask(new TLearningTask("Обучение"));
+	task_ptr LearningTask(new TLearningTask("Обучение", MediaPlayer1));
 	Tasks.push_back(LearningTask);
 
     for (int i = 0; i < Tasks.size(); i++) {

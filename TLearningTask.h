@@ -4,17 +4,29 @@
 #define TLearningTaskH
 
 #include "TBaseTask.h"
+#include <FMX.Media.hpp>
 //---------------------------------------------------------------------------
 
 class TLearningTask : public TBaseTask
 {
 public:
+	struct TQuestion
+	{
+		AnsiString Question;
+		AnsiString Goal;
+		AnsiString Ungoal;
+		AnsiString Type;
+        AnsiString SoundName;
+    };
+
 	enum SettingsName : int
 	{
 	   PathToQuestions,
-	   isLearning,
-	   isTesting,
+	   LearnEnable,
+	   TestEnable,
 	   QPlus,
+	   QQuastion,
+       QRest,
        TPlus
     };
 
@@ -28,7 +40,8 @@ public:
 	enum class QuestionState : int
 	{
 		PLUS,
-        p2
+		QUESTION,
+        REST
 	} qstate;
 
 	enum class TestingState : int
@@ -37,7 +50,7 @@ public:
         p2
 	} tstate;
 
-	TLearningTask(AnsiString _name);
+	TLearningTask(AnsiString _name, TMediaPlayer *_player);
 	void InitTask(AnsiString Path) override;
 	void StateManager() override;
 	bool Finished() override;
@@ -45,10 +58,14 @@ public:
 	void Draw() override;
 	void CloseTask() override;
 
+	void LoadQuestions();
 	bool Questions();
 	bool Testing();
 private:
+	TMediaPlayer *MediaPlayer;
 
+	std::vector<TQuestion> QList;
+    int QTrialCount = 0;
 };
 
 #endif
