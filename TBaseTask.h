@@ -40,7 +40,8 @@ class TBaseTask
 	virtual void UserTouch(const TTouches Touches, const TTouchAction Action) {};
 	virtual void Draw() {};
 	virtual void CloseTask() = 0;
-    virtual std::shared_ptr<ProtocolBase> CreateProtocol() { return nullptr; };
+	virtual std::shared_ptr<ProtocolBase> CreateProtocol() { return nullptr; };
+    virtual void ExternalTrigger(int trigger) {};
 
 	void DrawPlus();
 	void DrawOneNumber(int number);

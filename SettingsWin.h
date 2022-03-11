@@ -107,6 +107,11 @@ class TForm3 : public TForm
 	TCheckBox *CheckBox1;
 	TCheckBox *CheckBox2;
 	TCheckBox *CheckBox3;
+	TTreeViewItem *TreeViewItem3;
+	TTabItem *TabItem4;
+	TGroupBox *GroupBox1;
+	TEdit *EditClientTP;
+	TLabel *Label2;
     void __fastcall FormShow(TObject* Sender);
     void __fastcall FormHide(TObject* Sender);
 	void __fastcall FormCreate(TObject *Sender);

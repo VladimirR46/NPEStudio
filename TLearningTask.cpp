@@ -6,8 +6,6 @@
 #include "ComObj.hpp"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-
-
 //------------------------------------------------------------------------------
 TLearningTask::TLearningTask(AnsiString _name, TMediaPlayer *_player)
 	: TBaseTask(_name)
@@ -24,6 +22,15 @@ TLearningTask::TLearningTask(AnsiString _name, TMediaPlayer *_player)
 		Settings->Add(TPlus, "Тестирование: крест", GuiType::TRange, "1000:2000");
 		Settings->Save(_name);
 	}
+
+	ButtonYes = new TButtonFigure(bitmap.get());
+	ButtonNo = new TButtonFigure(bitmap.get());
+	ButtonYes->SetPosition(int(Screen->Size().Width) / 5, (int(Screen->Size().Height) / 4) * 3);
+	ButtonYes->SetSize(140,60);
+	ButtonYes->SetText("Да", 55);
+	ButtonNo->SetPosition((int(Screen->Size().Width) / 5)*4,(int(Screen->Size().Height) / 4) * 3);
+	ButtonNo->SetSize(140,60);
+	ButtonNo->SetText("Нет", 55);
 
 }
 //------------------------------------------------------------------------------
@@ -84,19 +91,68 @@ bool TLearningTask::Testing()
 		return true;
 	}
 
-	switch(tstate) {
+	switch(tstate)
+	{
 		case TestingState::PLUS:
 		{
 			ClearCanva();
             DrawPlus();
-            Timer->Interval = Settings->getRandFromRange(TPlus);
+			Timer->Interval = Settings->getRandFromRange(TPlus);
+			tstate = TestingState::QUESTION;
 			break;
 		}
-
+		case TestingState::QUESTION:
+		{
+			ClearCanva();
+			DrawText("Вопрос №1",66);
+			ButtonYes->SetVisible(true);
+            ButtonNo->SetVisible(true);
+            Timer->Interval = 0;
+			break;
+		}
+		case TestingState::REST:
+		{
+			ButtonYes->SetVisible(false);
+            ButtonNo->SetVisible(false);
+			ClearCanva();
+			Timer->Interval = 2000;
+			tstate = TestingState::PLUS;
+			break;
+		}
 		default:
 			break;
 	}
 	return false;
+}
+//------------------------------------------------------------------------------
+void TLearningTask::ExternalTrigger(int trigger)
+{
+   if(tstate == TestingState::QUESTION)
+   {
+	  if(trigger == 0) {
+		if(ButtonYes->isSelect()){
+			ButtonYes->Press();
+			tstate = TestingState::REST;
+			Timer->Interval = 200;
+		}
+		else {
+			ButtonYes->Select();
+			ButtonNo->UnSelect();
+		}
+	  }
+
+      if(trigger == 1) {
+		if(ButtonNo->isSelect()){
+			ButtonNo->Press();
+			tstate = TestingState::REST;
+			Timer->Interval = 200;
+		}
+		else {
+			ButtonNo->Select();
+            ButtonYes->UnSelect();
+		}
+	  }
+   }
 }
 //------------------------------------------------------------------------------
 void TLearningTask::LoadQuestions()
@@ -145,6 +201,7 @@ void TLearningTask::InitTask(AnsiString Path)
     LoadQuestions();
 	state = LEARNING;
 	qstate = QuestionState::PLUS;
+    tstate = TestingState::PLUS;
 	QTrialCount = 0;
    	Timer->Enabled = true;
 }
@@ -183,11 +240,19 @@ void TLearningTask::UserMouseDown(int X, int Y)
 //------------------------------------------------------------------------------
 void TLearningTask::Draw()
 {
-   	 TRectF MyRect(0, 0, bitmap->Width, bitmap->Height);
+	 TRectF MyRect(0, 0, bitmap->Width, bitmap->Height);
+	 ButtonYes->Draw();
+	 ButtonNo->Draw();
 	 Canvas->DrawBitmap(bitmap.get(), MyRect, MyRect, 1, false);
 }
 //------------------------------------------------------------------------------
 void TLearningTask::CloseTask()
 {
 
+}
+//------------------------------------------------------------------------------
+TLearningTask::~TLearningTask()
+{
+   delete ButtonYes;
+   delete ButtonNo;
 }

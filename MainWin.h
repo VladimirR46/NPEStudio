@@ -28,6 +28,7 @@
 #include <FMX.NumberBox.hpp>
 #include <FMX.Layouts.hpp>
 #include <FMX.ImgList.hpp>
+#include "TActiCHamp.h"
 
 #include <System.ImageList.hpp>
 #include <FMX.Dialogs.hpp>//---------------------------------------------------------------------------
@@ -66,12 +67,17 @@ class TForm1 : public TForm
 	TButton *Button4;
 	TButton *Button1;
 	TButton *Button2;
+	TButton *Button3;
+	TButton *Button5;
     void __fastcall ComboBox1Change(TObject* Sender);
 	void __fastcall MenuItem3Click(TObject *Sender);
 	void __fastcall MenuItem5Click(TObject *Sender);
 	void __fastcall Button4Click(TObject *Sender);
 	void __fastcall Button2Click(TObject *Sender);
+	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
+	void __fastcall Button5Click(TObject *Sender);
   private: // User declarations
+    TActiCHamp *actiCHamp;
   public: // User declarations
     __fastcall TForm1(TComponent* Owner);
 };

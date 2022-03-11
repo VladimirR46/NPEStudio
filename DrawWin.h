@@ -48,6 +48,7 @@ __published: // IDE-managed Components
           float X, float Y);
 	void __fastcall Timer2Timer(TObject *Sender);
 	void __fastcall PaintBox1Paint(TObject *Sender, TCanvas *Canvas);
+	void __fastcall ExternalTrigger(int trigger);
 
   private: // User declarations
 

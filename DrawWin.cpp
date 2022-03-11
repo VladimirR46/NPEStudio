@@ -141,7 +141,6 @@ void __fastcall TForm2::PaintBox1MouseUp(TObject *Sender, TMouseButton Button, T
 	Tasks[CurrentTask]->UserMouseUp(X, Y);
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm2::Timer2Timer(TObject *Sender)
 {
   PaintBox1->Repaint();
@@ -149,7 +148,11 @@ void __fastcall TForm2::Timer2Timer(TObject *Sender)
   Label1->Text = IntToStr(fps);
 }
 //---------------------------------------------------------------------------
-
+void __fastcall TForm2::ExternalTrigger(int trigger)
+{
+	Tasks[CurrentTask]->ExternalTrigger(trigger);
+}
+//---------------------------------------------------------------------------
 void __fastcall TForm2::PaintBox1Paint(TObject *Sender, TCanvas *Canvas)
 {
 	if((sw.GetTimeStamp() - curtime) > freq)
