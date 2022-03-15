@@ -124,7 +124,7 @@ void __fastcall TForm2::FormTouch(
 void __fastcall TForm2::PaintBox1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
           float X, float Y)
 {
-    Tasks[CurrentTask]->UserMouseDown(X, Y);
+    Tasks[CurrentTask]->UserMouseDown(X, Y, Button);
 }
 //---------------------------------------------------------------------------
 

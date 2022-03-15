@@ -155,7 +155,7 @@ bool TCubeTask::Finished()
 
 	return isFinished;
 }
-void TCubeTask::UserMouseDown(int X, int Y)
+void TCubeTask::UserMouseDown(int X, int Y, TMouseButton Button)
 {
 
 }

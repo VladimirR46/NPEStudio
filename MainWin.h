@@ -67,7 +67,6 @@ class TForm1 : public TForm
 	TButton *Button4;
 	TButton *Button1;
 	TButton *Button2;
-	TButton *Button3;
 	TButton *Button5;
     void __fastcall ComboBox1Change(TObject* Sender);
 	void __fastcall MenuItem3Click(TObject *Sender);

@@ -163,7 +163,7 @@ public:
 	   return n1;
 	}
 	//--------------------------------------------------------------------------
-	void UserMouseDown(int X, int Y) override
+	void UserMouseDown(int X, int Y, TMouseButton Button) override
 	{
 		if(state == CLICK)
 		{
@@ -494,7 +494,7 @@ public:
                 break;
 		}
 	}
-	void UserMouseDown(int X, int Y) override {
+	void UserMouseDown(int X, int Y, TMouseButton Button) override {
 		 if(state == CLICK)
 		 {
             if(old_state == INSTRUCTION){
@@ -681,7 +681,7 @@ public:
 				break;
 		}
 	}
-	void UserMouseDown(int X, int Y) override {
+	void UserMouseDown(int X, int Y, TMouseButton Button) override {
 		 if(state == CLICK)
 		 {
 			if(old_state == INSTRUCTION){
@@ -848,7 +848,7 @@ public:
 		}
 	}
     //--------------------------------------------------------------------------
-	void UserMouseDown(int X, int Y) override {
+	void UserMouseDown(int X, int Y, TMouseButton Button) override {
 		 if(state == CLICK)
 		 {
 			if(TrialCount == 0) {
@@ -911,7 +911,7 @@ public:
 	void InitTask(AnsiString Path) override;
 	void StateManager() override;
 	bool Finished() override;
-	void UserMouseDown(int X, int Y) override;
+	void UserMouseDown(int X, int Y, TMouseButton Button) override;
 	void Draw() override;
 	void CloseTask() override;
 private:

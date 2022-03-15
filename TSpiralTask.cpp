@@ -107,7 +107,7 @@ void __fastcall TSpiralTask::TimerEvent(TObject *Sender)
 }
 
 // --------------------------------------------------------------------------
-void TSpiralTask::UserMouseDown(int X, int Y)
+void TSpiralTask::UserMouseDown(int X, int Y, TMouseButton Button)
 {
 	if (abs(TargetPoint.X - X) < 8 && abs(TargetPoint.Y- Y) < 8) {
 		isDrawLine = true;
@@ -133,8 +133,10 @@ void TSpiralTask::UserMouseUp(int X, int Y)
 //--------------------------------------------------------------------------
 void TSpiralTask::UserTouch(const TTouches Touches, const TTouchAction Action)
 {
+    TMouseButton Button;
+
 	if (Touches.Length == 1 && !isTrialRun && Action == TTouchAction::Down) {
-		UserMouseDown(Touches[0].Location.X, Touches[0].Location.Y);
+		UserMouseDown(Touches[0].Location.X, Touches[0].Location.Y, Button);
 	}
 
 	if(Touches.Length == 1 && Action == TTouchAction::Up) {

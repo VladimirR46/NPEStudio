@@ -86,11 +86,11 @@ public:
 	bool Finished();
 	void UserClick();
 	void DrawUserLine(TPointF point);
-	void UserMouseMove(int X, int Y);
+	void UserMouseMove(int X, int Y) override;
 	void __fastcall TimerEvent(TObject *Sender);
-	void UserMouseDown(int X, int Y);
-	void UserMouseUp(int X, int Y);
-	void UserTouch(const TTouches Touches, const TTouchAction Action);
+	void UserMouseDown(int X, int Y, TMouseButton Button) override;
+	void UserMouseUp(int X, int Y) override;
+	void UserTouch(const TTouches Touches, const TTouchAction Action) override;
 	void DrawCircle(TAlphaColor color, int r, TPointF point);
 	void DrawPoints();
 	void CalcSpiral();

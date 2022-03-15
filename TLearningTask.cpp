@@ -20,6 +20,9 @@ TLearningTask::TLearningTask(AnsiString _name, TMediaPlayer *_player)
 		Settings->Add(QQuastion, "Обучение: утверждение", GuiType::TRange, "1000:2000");
         Settings->Add(QRest, "Обучение: отдых", GuiType::TRange, "1000:2000");
 		Settings->Add(TPlus, "Тестирование: крест", GuiType::TRange, "1000:2000");
+        Settings->Add(TShowResult, "Показа результата", GuiType::TCheckBox, 1);
+		Settings->Add(TShowResultTime, "Время показа результата", GuiType::TEdit, "1500");
+        Settings->Add(QTRest, "Отдых", GuiType::TEdit, "4000");
 		Settings->Save(_name);
 	}
 
@@ -36,10 +39,7 @@ TLearningTask::TLearningTask(AnsiString _name, TMediaPlayer *_player)
 //------------------------------------------------------------------------------
 bool TLearningTask::Questions()
 {
-	if(QTrialCount == QList.size() || Settings->getInt(LearnEnable) == 0)
-	{
-		return true;
-	}
+	if(QTrialCount == QList.size() || Settings->getInt(LearnEnable) == 0) return true;
 
 	switch(qstate) {
 		case QuestionState::PLUS:
@@ -58,12 +58,17 @@ bool TLearningTask::Questions()
                 DrawText(QList[QTrialCount].Question+" "+QList[QTrialCount].Goal, 66);
 			}
 
+            /*
 			if(QList[QTrialCount].Type == "звук" || QList[QTrialCount].Type == "текст+звук") {
 			   if(FileExists(Settings->get(PathToQuestions)+"\\sound\\"+QList[QTrialCount].SoundName)){
+				   unsigned int t1= millis();
 				   MediaPlayer->FileName = Settings->get(PathToQuestions)+"\\sound\\"+QList[QTrialCount].SoundName;
+				   unsigned int dt = millis() - t1;
+				   int duration = (MediaPlayer->Duration / MediaTimeScale)*1000.0;
 				   MediaPlayer->Play();
 			   }
-            }
+			}
+			*/
 
 
 			Timer->Interval = Settings->getRandFromRange(QQuastion);
@@ -86,10 +91,7 @@ bool TLearningTask::Questions()
 //------------------------------------------------------------------------------
 bool TLearningTask::Testing()
 {
-	if(Settings->getInt(TestEnable) == 0)
-	{
-		return true;
-	}
+	if(TTrialCount == QList.size() || Settings->getInt(TestEnable) == 0) return true;
 
 	switch(tstate)
 	{
@@ -104,7 +106,12 @@ bool TLearningTask::Testing()
 		case TestingState::QUESTION:
 		{
 			ClearCanva();
-			DrawText("Вопрос №1",66);
+
+			if(QList[TTrialCount].Sample == "целевая")
+				DrawText(QList[TTrialCount].Question+" "+QList[TTrialCount].Goal,48);
+			if(QList[TTrialCount].Sample == "нецелевая")
+				DrawText(QList[TTrialCount].Question+" "+QList[TTrialCount].Ungoal,48);
+
 			ButtonYes->SetVisible(true);
             ButtonNo->SetVisible(true);
             Timer->Interval = 0;
@@ -115,6 +122,7 @@ bool TLearningTask::Testing()
 			ButtonYes->SetVisible(false);
             ButtonNo->SetVisible(false);
 			ClearCanva();
+            TTrialCount++;
 			Timer->Interval = 2000;
 			tstate = TestingState::PLUS;
 			break;
@@ -127,13 +135,22 @@ bool TLearningTask::Testing()
 //------------------------------------------------------------------------------
 void TLearningTask::ExternalTrigger(int trigger)
 {
-   if(tstate == TestingState::QUESTION)
+   if((ButtonYes->isVisible() || ButtonNo->isVisible()) && tstate == TestingState::QUESTION)
    {
+	   TAlphaColor color = TAlphaColorRec::Lightskyblue;
+	   if(Settings->getInt(TShowResult))
+	   {
+		   if((trigger == 0 && QList[TTrialCount].Sample == "целевая") || (trigger == 1 && QList[TTrialCount].Sample == "нецелевая"))
+			color = TAlphaColorRec::Lightgreen;
+		   else
+			color = TAlphaColorRec::Lightcoral;
+       }
+
 	  if(trigger == 0) {
 		if(ButtonYes->isSelect()){
-			ButtonYes->Press();
+			ButtonYes->Press(color);
 			tstate = TestingState::REST;
-			Timer->Interval = 200;
+			Timer->Interval = Settings->getInt(TShowResultTime);
 		}
 		else {
 			ButtonYes->Select();
@@ -143,9 +160,9 @@ void TLearningTask::ExternalTrigger(int trigger)
 
       if(trigger == 1) {
 		if(ButtonNo->isSelect()){
-			ButtonNo->Press();
+			ButtonNo->Press(color);
 			tstate = TestingState::REST;
-			Timer->Interval = 200;
+			Timer->Interval = Settings->getInt(TShowResultTime);
 		}
 		else {
 			ButtonNo->Select();
@@ -165,14 +182,14 @@ void TLearningTask::LoadQuestions()
 	{
 		Variant exl = CreateOleObject("Excel.Application");
 		exl.OlePropertyGet("Workbooks").OleProcedure("Open", static_cast<WideString>(excel_filename));
-		for(int i = 2 ; i < 5; i++)
+		for(int i = 2 ; i < 32; i++)
 		{
 			TQuestion question;
 			question.Question = exl.OlePropertyGet("Cells", i, 2);
 			question.Goal = exl.OlePropertyGet("Cells", i, 3);
 			question.Ungoal = exl.OlePropertyGet("Cells", i, 4);
 			question.Type = exl.OlePropertyGet("Cells", i, 5);
-			question.SoundName = exl.OlePropertyGet("Cells", i, 6);
+			question.Sample = exl.OlePropertyGet("Cells", i, 6);
 			QList.push_back(question);
 		}
         exl.OleProcedure("Quit");
@@ -198,12 +215,16 @@ void TLearningTask::LoadQuestions()
 //------------------------------------------------------------------------------
 void TLearningTask::InitTask(AnsiString Path)
 {
-    LoadQuestions();
+	LoadQuestions();
+	ButtonYes->SetVisible(false);
+	ButtonNo->SetVisible(false);
 	state = LEARNING;
 	qstate = QuestionState::PLUS;
     tstate = TestingState::PLUS;
 	QTrialCount = 0;
-   	Timer->Enabled = true;
+    TTrialCount = 0;
+    Timer->Interval = 100;
+	Timer->Enabled = true;
 }
 //------------------------------------------------------------------------------
 void TLearningTask::StateManager()
@@ -211,12 +232,24 @@ void TLearningTask::StateManager()
     switch(state) {
 		case LEARNING:
 		{
-			if(Questions()) state = TESTING;
+			if(Questions()){
+			 if(Settings->getInt(TestEnable) && !Settings->getInt(LearnEnable)) state = TESTING;
+             else if(Settings->getInt(TestEnable) && Settings->getInt(LearnEnable)) state = REST;
+			 else state = FINISHED;
+            }
 			break;
 		}
 		case TESTING:
 		{
 			if(Testing()) state = FINISHED;
+			break;
+		}
+        case REST:
+		{
+			ClearCanva();
+			DrawText("Отдых",66);
+            state = TESTING;
+            Timer->Interval = Settings->getInt(QTRest);
 			break;
 		}
 		default:
@@ -233,9 +266,12 @@ bool TLearningTask::Finished()
 	return false;
 }
 //------------------------------------------------------------------------------
-void TLearningTask::UserMouseDown(int X, int Y)
+void TLearningTask::UserMouseDown(int X, int Y, TMouseButton Button)
 {
-
+	if(Button == TMouseButton::mbLeft)
+		ExternalTrigger(0);
+	if(Button == TMouseButton::mbRight)
+    	ExternalTrigger(1);
 }
 //------------------------------------------------------------------------------
 void TLearningTask::Draw()
@@ -248,7 +284,10 @@ void TLearningTask::Draw()
 //------------------------------------------------------------------------------
 void TLearningTask::CloseTask()
 {
-
+   Timer->Enabled = false;
+   ClearCanva();
+   ButtonYes->SetVisible(false);
+   ButtonNo->SetVisible(false);
 }
 //------------------------------------------------------------------------------
 TLearningTask::~TLearningTask()

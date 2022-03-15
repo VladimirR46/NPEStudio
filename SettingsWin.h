@@ -125,8 +125,8 @@ class TForm3 : public TForm
 	__fastcall TForm3(TComponent* Owner);
 	void __fastcall UpdateSettings(SettingsBase *settings);
 	void __fastcall SaveSettings(SettingsBase *settings);
-	void SaveIDESettings();
-    void LoadIDESettings();
+	void __fastcall SaveIDESettings();
+    void __fastcall LoadIDESettings();
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm3* Form3;

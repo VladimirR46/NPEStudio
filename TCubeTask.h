@@ -66,7 +66,7 @@ public:
 	void InitTask(AnsiString Path) override;
 	void StateManager() override;
 	bool Finished() override;
-	void UserMouseDown(int X, int Y) override;
+	void UserMouseDown(int X, int Y, TMouseButton Button) override;
 	void Draw() override;
 	void CloseTask() override;
 

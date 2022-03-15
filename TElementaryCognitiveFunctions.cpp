@@ -95,9 +95,9 @@ bool TElementaryCognitiveFunctions::Finished()
     if(PartCount == Settings->getInt(PartsCount)) return true;
 	return false;
 }
-void TElementaryCognitiveFunctions::UserMouseDown(int X, int Y)
+void TElementaryCognitiveFunctions::UserMouseDown(int X, int Y, TMouseButton Button)
 {
-   if(state == RUN_BLOCK) Blocks[BlockSequence[PartCount][cur_block]]->UserMouseDown(X,Y);
+   if(state == RUN_BLOCK) Blocks[BlockSequence[PartCount][cur_block]]->UserMouseDown(X,Y,Button);
 }
 void TElementaryCognitiveFunctions::Draw()
 {

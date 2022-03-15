@@ -35,7 +35,7 @@ class TBaseTask
     virtual bool Finished() = 0;
     virtual void UserClick() {};
     virtual void UserMouseMove(int X, int Y) {};
-    virtual void UserMouseDown(int X, int Y) = 0;
+    virtual void UserMouseDown(int X, int Y, TMouseButton Button) = 0;
 	virtual void UserMouseUp(int X, int Y) {};
 	virtual void UserTouch(const TTouches Touches, const TTouchAction Action) {};
 	virtual void Draw() {};

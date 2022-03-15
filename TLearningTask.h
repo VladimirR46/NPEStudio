@@ -32,15 +32,26 @@ public:
 			bitmap->Canvas->Font->Size = TextSize;
 			bitmap->Canvas->Stroke->Thickness = Thickness;
 
-			if(state == NORMAL) bitmap->Canvas->Stroke->Color = TAlphaColorRec::White;
-			else if(state == SELECTED) bitmap->Canvas->Stroke->Color = TAlphaColorRec::Green;
-			else if(state == PRESSED) bitmap->Canvas->Stroke->Color = TAlphaColorRec::Blue;
-
-			// Clear bitmap
-			bitmap->Canvas->Fill->Color = TAlphaColorRec::Black;
+            // Clear bitmap
+            bitmap->Canvas->Fill->Color = TAlphaColorRec::Black;
 			bitmap->Canvas->FillRect(TRectF(X-sizeX-Thickness/2,Y-sizeY-Thickness/2,X+sizeX+Thickness/2,Y+sizeY+Thickness/2), 1);
+
 			// Draw
-			bitmap->Canvas->Fill->Color = TAlphaColorRec::White;
+			switch(state)
+			{
+				case NORMAL:
+                bitmap->Canvas->Stroke->Color = TAlphaColorRec::Black;
+				break;
+				case SELECTED:
+                bitmap->Canvas->Stroke->Color = TAlphaColorRec::White;
+				break;
+				case PRESSED:
+				bitmap->Canvas->Stroke->Color = TAlphaColorRec::White;
+				bitmap->Canvas->Fill->Color = PressColor;
+				break;
+			}
+			bitmap->Canvas->FillRect(rect, 40, 40, AllCorners, 1, TCornerType::Round);
+            bitmap->Canvas->Fill->Color = TAlphaColorRec::White;
 			bitmap->Canvas->DrawRect(rect, 40, 40, AllCorners, 1, TCornerType::Round);
 			bitmap->Canvas->FillText(rect, Text, false, 100, TFillTextFlags(),TTextAlign::Center, TTextAlign::Center);
 			bitmap->Canvas->EndScene();
@@ -51,10 +62,11 @@ public:
 	void SetSize(int _sizeX, int _sizeY) { sizeX = _sizeX; sizeY = _sizeY; }
 	void Select() { state = SELECTED; }
 	void UnSelect() {state = NORMAL; }
-	void Press() {state = PRESSED; }
+	void Press(TAlphaColor color = TAlphaColorRec::Lightskyblue) {PressColor = color; state = PRESSED; }
 	bool isSelect() { return (state == SELECTED) ? true : false; }
 	void SetText(AnsiString str, int text_size) { Text = str; TextSize = text_size;	}
 	void SetVisible(bool value) { state = NORMAL; Visible = value; }
+	bool isVisible() {return Visible; }
 
 private:
 	State state;
@@ -64,7 +76,8 @@ private:
 	int sizeX = 0, sizeY = 0;
 	TBitmap *bitmap;
     bool Visible = false;
-    int Thickness = 8;
+	int Thickness = 8;
+    TAlphaColor PressColor;
 };
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -77,7 +90,7 @@ public:
 		AnsiString Goal;
 		AnsiString Ungoal;
 		AnsiString Type;
-        AnsiString SoundName;
+        AnsiString Sample;
     };
 
 	enum SettingsName : int
@@ -88,13 +101,17 @@ public:
 	   QPlus,
 	   QQuastion,
        QRest,
-       TPlus
+	   TPlus,
+       TShowResult,
+	   TShowResultTime,
+       QTRest
     };
 
 	enum State : int
 	{
 	   LEARNING,
 	   TESTING,
+       REST,
        FINISHED
 	} state;
 
@@ -116,7 +133,7 @@ public:
 	void InitTask(AnsiString Path) override;
 	void StateManager() override;
 	bool Finished() override;
-	void UserMouseDown(int X, int Y) override;
+	void UserMouseDown(int X, int Y, TMouseButton Button) override;
 	void Draw() override;
 	void CloseTask() override;
 	void ExternalTrigger(int trigger) override;
@@ -132,6 +149,8 @@ private:
 
 	std::vector<TQuestion> QList;
 	int QTrialCount = 0;
+
+    int TTrialCount = 0;
 
 	TButtonFigure *ButtonYes;
 	TButtonFigure *ButtonNo;
