@@ -17,7 +17,7 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 	CreateDir(patch);
 	std::filesystem::current_path(patch.c_str());
 
-    actiCHamp = new TActiCHamp(true);
+    actiCHamp = new TActiCHamp(true); // Актичамп
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ComboBox1Change(TObject* Sender)
