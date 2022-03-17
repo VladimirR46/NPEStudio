@@ -31,7 +31,8 @@
 #include "TActiCHamp.h"
 
 #include <System.ImageList.hpp>
-#include <FMX.Dialogs.hpp>//---------------------------------------------------------------------------
+#include <FMX.Dialogs.hpp>
+#include <FMX.SearchBox.hpp>//---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
   __published: // IDE-managed Components
@@ -64,21 +65,25 @@ class TForm1 : public TForm
 	TListBoxItem *ListBoxItem1;
 	TToolBar *ToolBar1;
 	TImageList *ImageList1;
-	TButton *Button4;
 	TButton *Button1;
 	TButton *Button2;
 	TButton *Button5;
+	TComboBox *cbMonitors;
+	TButton *btnStart;
     void __fastcall ComboBox1Change(TObject* Sender);
 	void __fastcall MenuItem3Click(TObject *Sender);
 	void __fastcall MenuItem5Click(TObject *Sender);
-	void __fastcall Button4Click(TObject *Sender);
+	void __fastcall btnStartClick(TObject *Sender);
 	void __fastcall Button2Click(TObject *Sender);
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 	void __fastcall Button5Click(TObject *Sender);
+	void __fastcall FormShow(TObject *Sender);
+	void __fastcall FormKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar,
+          TShiftState Shift);
   private: // User declarations
     TActiCHamp *actiCHamp;
   public: // User declarations
-    __fastcall TForm1(TComponent* Owner);
+	__fastcall TForm1(TComponent* Owner);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1* Form1;

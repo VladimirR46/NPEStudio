@@ -49,6 +49,7 @@ __published: // IDE-managed Components
 	void __fastcall Timer2Timer(TObject *Sender);
 	void __fastcall PaintBox1Paint(TObject *Sender, TCanvas *Canvas);
 	void __fastcall ExternalTrigger(int trigger);
+	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 
   private: // User declarations
 

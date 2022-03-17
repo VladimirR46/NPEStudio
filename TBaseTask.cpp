@@ -9,8 +9,9 @@ TForm* TBaseTask::Form;
 TBaseTask::TBaseTask(AnsiString _name) : TaskName(_name)
 {
 	bitmap = bitmap_ptr(new TBitmap());
-	bitmap->SetSize(int(Screen->Size().Width),int(Screen->Size().Height));
-	bitmap->Clear(TAlphaColorRec::Null ); //Alpha
+	//bitmap->SetSize(int(Screen->Size().Width),int(Screen->Size().Height));
+    //bitmap->SetSize(int(Form->Width),int(Form->Height));
+	//bitmap->Clear(TAlphaColorRec::Null ); //Alpha
 	Settings = settings_ptr(new SettingsBase(_name));
     Protocol = protocol_ptr(new TProtocol(_name));
 }
@@ -25,6 +26,9 @@ TBaseTask::TBaseTask(TBaseTask* _parent, AnsiString _name) : TBaseTask(_name)
 //--------------------------------------------------------------------------
 void TBaseTask::Init(AnsiString Path, SubjectInfo _sub)
 {
+    bitmap->SetSize(int(Form->Width),int(Form->Height));
+	bitmap->Clear(TAlphaColorRec::Null ); //Alpha
+
 	if(!Parent)	Protocol->Init(Path, _sub);
 	InitTask(Path);
 	for(int i = 0; i < Blocks.size(); i++){

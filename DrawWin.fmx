@@ -1,6 +1,7 @@
 object Form2: TForm2
   Left = 0
   Top = 0
+  BorderStyle = None
   Caption = 'Form2'
   ClientHeight = 498
   ClientWidth = 645
@@ -9,6 +10,7 @@ object Form2: TForm2
   FormFactor.Devices = [Desktop]
   FullScreen = True
   OnCreate = FormCreate
+  OnClose = FormClose
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   OnTouch = FormTouch

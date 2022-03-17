@@ -177,7 +177,7 @@ void TLearningTask::LoadQuestions()
  	QList.clear();
 
 	UnicodeString excel_filename = Settings->get(PathToQuestions)+"\\Questions.xlsx";
-
+    /*
     try
 	{
 		Variant exl = CreateOleObject("Excel.Application");
@@ -197,20 +197,23 @@ void TLearningTask::LoadQuestions()
 	catch(...){
 		ShowMessage("Ошибка при загрузке xls файла");
 	}
-
-    /*
-	TStringList *list = new TStringList();
-	list->LoadFromFile(Settings->get(PathToQuestions)+"\\Questions.txt", TEncoding::UTF8);
-	for(int i = 0; i < list->Count; i++)
-	{
-		if(list->Strings[i] == "") break;
-		TStringDynArray data = SplitString(list->Strings[i],"!");
-		question_list.push_back(data[0]);
-		goal_list.push_back(data[1]);
-		ungoal_list.push_back(data[2]);
-    }
-	delete list;
 	*/
+
+	TStringList *list = new TStringList();
+	list->LoadFromFile(Settings->get(PathToQuestions)+"\\Questions.csv", TEncoding::UTF8);
+	for(int i = 1; i < 31/*list->Count*/; i++)
+	{
+        TQuestion question;
+		TStringDynArray data = SplitString(list->Strings[i],";");
+		question.Question = data[1];
+		question.Goal = data[2];
+		question.Ungoal = data[3];
+		question.Type = data[4];
+		question.Sample = data[5];
+        QList.push_back(question);
+	}
+	delete list;
+
 }
 //------------------------------------------------------------------------------
 void TLearningTask::InitTask(AnsiString Path)

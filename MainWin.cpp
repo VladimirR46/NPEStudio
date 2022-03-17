@@ -36,9 +36,24 @@ void __fastcall TForm1::MenuItem5Click(TObject *Sender)
     Form1->Close();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::Button4Click(TObject *Sender)
+void __fastcall TForm1::btnStartClick(TObject *Sender)
 {
-    Form2->Show();
+	if(btnStart->ImageIndex == 0) {
+		Screen->UpdateDisplayInformation();
+		//System::Types::TRectF r1 = Screen->Displays[0].BoundsRect();
+
+		Form2->Top = Screen->Displays[cbMonitors->ItemIndex].BoundsRect().Top;
+		Form2->Left = Screen->Displays[cbMonitors->ItemIndex].BoundsRect().Left;
+		//Form2->Height = Screen->Displays[ComboBox4->ItemIndex].BoundsRect().Bottom;
+		//Form2->Width = Screen->Displays[ComboBox4->ItemIndex].BoundsRect().Right;
+
+		Form2->Show();
+        btnStart->ImageIndex = 7;
+	}
+	else {
+		Form2->Close();
+        btnStart->ImageIndex = 0;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::Button2Click(TObject *Sender)
@@ -66,6 +81,27 @@ void __fastcall TForm1::Button5Click(TObject *Sender)
 		Button5->ImageIndex = 4;
         actiCHamp->Resume();
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::FormShow(TObject *Sender)
+{
+	for(int i = 0; i <  Screen->DisplayCount; i++)
+	{
+	   TListBoxItem* item = new TListBoxItem(cbMonitors);
+	   item->Parent = cbMonitors;
+	   item->Text = "Монитор "+ IntToStr(i+1);
+	   item->StyleLookup = "listboxitemstyle";
+	   item->ImageIndex = 6;
+	}
+	cbMonitors->ItemIndex = 0;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::FormKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar,
+          TShiftState Shift)
+{
+  	if (Key == VK_ESCAPE) {
+        Form2->Close();
+	}
 }
 //---------------------------------------------------------------------------
 

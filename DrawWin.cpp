@@ -29,7 +29,6 @@ void __fastcall TForm2::FormKeyDown(
     TObject* Sender, WORD &Key, System::WideChar &KeyChar, TShiftState Shift)
 {
 	if (Key == VK_ESCAPE) {
-        Tasks[CurrentTask]->CloseTask();
         Close();
 	}
 }
@@ -183,6 +182,10 @@ void __fastcall TForm2::PaintBox1Paint(TObject *Sender, TCanvas *Canvas)
 
 }
 //---------------------------------------------------------------------------
-
-
+void __fastcall TForm2::FormClose(TObject *Sender, TCloseAction &Action)
+{
+	Tasks[CurrentTask]->CloseTask();
+	Form1->btnStart->ImageIndex = 0;
+}
+//---------------------------------------------------------------------------
 
