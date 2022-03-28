@@ -9,6 +9,27 @@
 #pragma package(smart_init)
 #pragma resource "*.fmx"
 TForm1* Form1;
+
+HHOOK hook;
+
+//---------------------------------------------------------------------------
+LRESULT CALLBACK LLKeyProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+    if(nCode == HC_ACTION)
+    {
+		DWORD vk = ((LPKBDLLHOOKSTRUCT)lParam)->vkCode;
+        if(wParam == WM_KEYUP) // кнопка отпущена?
+		{
+			if(Form1->triggerbox->Connected())
+			{
+				if(vk == (int)'1') Form1->triggerbox->SendTrigger(0);
+				if(vk == (int)'2') Form1->triggerbox->SendTrigger(1);
+				if(vk == (int)'3') Form1->triggerbox->SendTrigger(2);
+			}
+        }
+    }
+    return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
 //---------------------------------------------------------------------------
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 {
@@ -95,6 +116,8 @@ void __fastcall TForm1::FormShow(TObject *Sender)
 	AniIndicator1->Visible = Form3->cbTBAutoConnect->IsChecked;
 	Button7->Enabled = !Form3->cbTBAutoConnect->IsChecked;
 
+	if(Form3->cbGlobalKeyHook->IsChecked)
+		SetKeyHook();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar,
@@ -122,20 +145,35 @@ void __fastcall TForm1::Button7Click(TObject *Sender)
 	   return;
 	}
 
-
 	if(Form3->eComName->Text == ""){
 		Memo1->Lines->Add("Ошибка: укажите имя COM порта в настройках");
         return;
 	}
 
-	if(triggerbox->OpenComPort(AnsiString(Form3->eComName->Text).c_str()))
-	{
+	if(triggerbox->OpenComPort(AnsiString(Form3->eComName->Text).c_str())) {
 		Button7->ImageIndex = 4;
-	}
-	else{
+	} else {
 		Memo1->Lines->Add("Ошибка: Невозможно подключиться к "+ Form3->eComName->Text);
     }
 }
 //---------------------------------------------------------------------------
-
+void __fastcall TForm1::SetKeyHook()
+{
+	if(!hook)
+		hook = SetWindowsHookEx(WH_KEYBOARD_LL, LLKeyProc, GetModuleHandle(NULL), 0);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::UnSetKeyHook()
+{
+	if(hook){
+		UnhookWindowsHookEx(hook);
+        hook = NULL;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::FormDestroy(TObject *Sender)
+{
+    UnSetKeyHook();
+}
+//---------------------------------------------------------------------------
 

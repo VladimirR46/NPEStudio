@@ -28,10 +28,8 @@ TLearningTask::TLearningTask(AnsiString _name, TMediaPlayer *_player)
 
 	ButtonYes = new TButtonFigure(bitmap.get());
 	ButtonNo = new TButtonFigure(bitmap.get());
-	ButtonYes->SetPosition(int(Screen->Size().Width) / 5, (int(Screen->Size().Height) / 4) * 3);
 	ButtonYes->SetSize(140,60);
 	ButtonYes->SetText("Да", 55);
-	ButtonNo->SetPosition((int(Screen->Size().Width) / 5)*4,(int(Screen->Size().Height) / 4) * 3);
 	ButtonNo->SetSize(140,60);
 	ButtonNo->SetText("Нет", 55);
 
@@ -219,6 +217,8 @@ void TLearningTask::LoadQuestions()
 void TLearningTask::InitTask(AnsiString Path)
 {
 	LoadQuestions();
+	ButtonYes->SetPosition(int(Form->Width) / 5, (int(Form->Height) / 4) * 3);
+	ButtonNo->SetPosition((int(Form->Width) / 5)*4,(int(Form->Height) / 4) * 3);
 	ButtonYes->SetVisible(false);
 	ButtonNo->SetVisible(false);
 	state = LEARNING;
@@ -271,6 +271,7 @@ bool TLearningTask::Finished()
 //------------------------------------------------------------------------------
 void TLearningTask::UserMouseDown(int X, int Y, TMouseButton Button)
 {
+    // For Debugging
 	if(Button == TMouseButton::mbLeft)
 		ExternalTrigger(0);
 	if(Button == TMouseButton::mbRight)

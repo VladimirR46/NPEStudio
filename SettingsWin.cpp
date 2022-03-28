@@ -23,7 +23,8 @@ void __fastcall TForm3::SaveIDESettings()
 	__try {
 		 o->AddPair( new TJSONPair("ShowFPS",CheckBox1->IsChecked) );
 		 o->AddPair( new TJSONPair("ShowDrawDevices",CheckBox2->IsChecked) );
-         o->AddPair( new TJSONPair("OpenWorkFolder",CheckBox3->IsChecked) );
+		 o->AddPair( new TJSONPair("OpenWorkFolder",CheckBox3->IsChecked) );
+		 o->AddPair( new TJSONPair("GlobalKeyHook",cbGlobalKeyHook->IsChecked) );
 		 jsonFile->Text = o->ToString();
 		 jsonFile->SaveToFile(SettingsDir+"IDE.json", TEncoding::Unicode);
 	}
@@ -43,7 +44,8 @@ void __fastcall TForm3::LoadIDESettings()
 	{
 		CheckBox1->IsChecked = o->Values["ShowFPS"]->AsType<bool>();
 		CheckBox2->IsChecked = o->Values["ShowDrawDevices"]->AsType<bool>();
-        CheckBox3->IsChecked = o->Values["OpenWorkFolder"]->AsType<bool>();
+		CheckBox3->IsChecked = o->Values["OpenWorkFolder"]->AsType<bool>();
+		cbGlobalKeyHook->IsChecked = o->Values["GlobalKeyHook"]->AsType<bool>();
 	}
 	__finally {
 		o->Free();
@@ -257,6 +259,15 @@ void __fastcall TForm3::cbTBAutoConnectChange(TObject *Sender)
 	Form1->AniIndicator1->Enabled = cbTBAutoConnect->IsChecked;
 	Form1->AniIndicator1->Visible = cbTBAutoConnect->IsChecked;
 	Form1->Button7->Enabled = !cbTBAutoConnect->IsChecked;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm3::cbGlobalKeyHookChange(TObject *Sender)
+{
+	if(cbGlobalKeyHook->IsChecked)
+		Form1->SetKeyHook();
+	else
+        Form1->UnSetKeyHook();
 }
 //---------------------------------------------------------------------------
 

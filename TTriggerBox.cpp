@@ -74,7 +74,7 @@ void __fastcall TTriggerBox::TimerEvent(TObject *Sender)
 		for(size_t i=0; i<ports.size(); ++i)
 		{
 		  AnsiString disc = ports[i].description().c_str();
-		  if(disc.Pos("STLink"))
+		  if(disc.Pos("TriggerBox"))
 		  {
 			  AnsiString name = ports[i].portName().c_str();
 			  if(OpenComPort(name.c_str()))

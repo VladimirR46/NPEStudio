@@ -102,11 +102,14 @@ class TForm1 : public TForm
           TShiftState Shift);
 	void __fastcall Button6Click(TObject *Sender);
 	void __fastcall Button7Click(TObject *Sender);
+	void __fastcall FormDestroy(TObject *Sender);
   private: // User declarations
 	TActiCHamp *actiCHamp;
 
   public: // User declarations
 	__fastcall TForm1(TComponent* Owner);
+	void __fastcall SetKeyHook();
+	void __fastcall UnSetKeyHook();
   TTriggerBox *triggerbox;
 };
 //---------------------------------------------------------------------------

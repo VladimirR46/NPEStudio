@@ -119,6 +119,7 @@ class TForm3 : public TForm
 	TGroupBox *GroupBox2;
 	TLabel *lComName;
 	TEdit *eComName;
+	TCheckBox *cbGlobalKeyHook;
     void __fastcall FormShow(TObject* Sender);
     void __fastcall FormHide(TObject* Sender);
 	void __fastcall FormCreate(TObject *Sender);
@@ -127,6 +128,7 @@ class TForm3 : public TForm
 	void __fastcall Button1Click(TObject *Sender);
     void __fastcall ButtonClick(TObject *Sender);
 	void __fastcall cbTBAutoConnectChange(TObject *Sender);
+	void __fastcall cbGlobalKeyHookChange(TObject *Sender);
   private: // User declarations
   	AnsiString SettingsDir;
   public: // User declarations

@@ -32,10 +32,6 @@ void __fastcall TForm2::FormKeyDown(
 		Close();
         return;
 	}
-
-	if(KeyChar == L'1') Form1->triggerbox->SendTrigger(0);
-	if(KeyChar == L'2') Form1->triggerbox->SendTrigger(1);
-	if(KeyChar == L'3') Form1->triggerbox->SendTrigger(2);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormCreate(TObject* Sender)
