@@ -5,7 +5,6 @@
 #include "DrawWin.h"
 #include "SettingsWin.h"
 #include <filesystem>
-
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -17,7 +16,8 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 	CreateDir(patch);
 	std::filesystem::current_path(patch.c_str());
 
-    actiCHamp = new TActiCHamp(true); // Актичамп
+	actiCHamp = new TActiCHamp(true); // Актичамп
+	triggerbox = new TTriggerBox();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ComboBox1Change(TObject* Sender)
@@ -25,7 +25,6 @@ void __fastcall TForm1::ComboBox1Change(TObject* Sender)
 	Form2->CurrentTask = Form1->ComboBox1->ItemIndex;
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::MenuItem3Click(TObject *Sender)
 {
     Form3->Show();
@@ -41,12 +40,10 @@ void __fastcall TForm1::btnStartClick(TObject *Sender)
 	if(btnStart->ImageIndex == 0) {
 		Screen->UpdateDisplayInformation();
 		//System::Types::TRectF r1 = Screen->Displays[0].BoundsRect();
-
 		Form2->Top = Screen->Displays[cbMonitors->ItemIndex].BoundsRect().Top;
 		Form2->Left = Screen->Displays[cbMonitors->ItemIndex].BoundsRect().Left;
 		//Form2->Height = Screen->Displays[ComboBox4->ItemIndex].BoundsRect().Bottom;
 		//Form2->Width = Screen->Displays[ComboBox4->ItemIndex].BoundsRect().Right;
-
 		Form2->Show();
         btnStart->ImageIndex = 7;
 	}
@@ -67,13 +64,11 @@ void __fastcall TForm1::Button2Click(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
 {
 	actiCHamp->Terminate();
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::Button5Click(TObject *Sender)
 {
 	if(actiCHamp->InitializeSockets())
@@ -94,14 +89,52 @@ void __fastcall TForm1::FormShow(TObject *Sender)
 	   item->ImageIndex = 6;
 	}
 	cbMonitors->ItemIndex = 0;
+
+	triggerbox->AutoConnect(Form3->cbTBAutoConnect->IsChecked);
+	AniIndicator1->Enabled = Form3->cbTBAutoConnect->IsChecked;
+	AniIndicator1->Visible = Form3->cbTBAutoConnect->IsChecked;
+	Button7->Enabled = !Form3->cbTBAutoConnect->IsChecked;
+
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar,
           TShiftState Shift)
 {
-  	if (Key == VK_ESCAPE) {
+	if (Key == VK_ESCAPE) {
         Form2->Close();
 	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Button6Click(TObject *Sender)
+{
+    Memo1->Lines->Clear();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Button7Click(TObject *Sender)
+{
+	if(Button7->ImageIndex == 4)
+	{
+	   if(MessageBox(NULL, L"Вы действительно хотите отключиться от TriggerBox?",L"Подтверждение",MB_YESNO) == IDYES)
+	   {
+		  Button7->ImageIndex = 5;
+		  triggerbox->CloseComPort();
+       }
+	   return;
+	}
+
+
+	if(Form3->eComName->Text == ""){
+		Memo1->Lines->Add("Ошибка: укажите имя COM порта в настройках");
+        return;
+	}
+
+	if(triggerbox->OpenComPort(AnsiString(Form3->eComName->Text).c_str()))
+	{
+		Button7->ImageIndex = 4;
+	}
+	else{
+		Memo1->Lines->Add("Ошибка: Невозможно подключиться к "+ Form3->eComName->Text);
+    }
 }
 //---------------------------------------------------------------------------
 

@@ -29,8 +29,13 @@ void __fastcall TForm2::FormKeyDown(
     TObject* Sender, WORD &Key, System::WideChar &KeyChar, TShiftState Shift)
 {
 	if (Key == VK_ESCAPE) {
-        Close();
+		Close();
+        return;
 	}
+
+	if(KeyChar == L'1') Form1->triggerbox->SendTrigger(0);
+	if(KeyChar == L'2') Form1->triggerbox->SendTrigger(1);
+	if(KeyChar == L'3') Form1->triggerbox->SendTrigger(2);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormCreate(TObject* Sender)
@@ -98,7 +103,9 @@ void __fastcall TForm2::FormShow(TObject* Sender)
 	CreateDir(Path);
 
 	Tasks[CurrentTask]->Init(Path, subject);
-    Tasks[CurrentTask]->StartTask();
+	Tasks[CurrentTask]->StartTask();
+
+    if(Form1->triggerbox->Connected()) Form1->triggerbox->SendData(0x00);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm2::Timer1Timer(TObject* Sender)
@@ -186,6 +193,8 @@ void __fastcall TForm2::FormClose(TObject *Sender, TCloseAction &Action)
 {
 	Tasks[CurrentTask]->CloseTask();
 	Form1->btnStart->ImageIndex = 0;
+
+    if(Form1->triggerbox->Connected()) Form1->triggerbox->SendData(0xFF);
 }
 //---------------------------------------------------------------------------
 

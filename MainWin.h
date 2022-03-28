@@ -29,10 +29,12 @@
 #include <FMX.Layouts.hpp>
 #include <FMX.ImgList.hpp>
 #include "TActiCHamp.h"
+#include "TTriggerBox.h"
 
 #include <System.ImageList.hpp>
 #include <FMX.Dialogs.hpp>
-#include <FMX.SearchBox.hpp>//---------------------------------------------------------------------------
+#include <FMX.SearchBox.hpp>
+#include <FMX.Objects.hpp>//---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
   __published: // IDE-managed Components
@@ -70,6 +72,24 @@ class TForm1 : public TForm
 	TButton *Button5;
 	TComboBox *cbMonitors;
 	TButton *btnStart;
+	TListBoxItem *ListBoxItem12;
+	TPanel *Panel1;
+	TRectangle *Rectangle1;
+	TImage *Image1;
+	TText *Text1;
+	TPanel *Panel2;
+	TRectangle *Rectangle3;
+	TText *Text3;
+	TMemo *Memo1;
+	TPanel *Panel3;
+	TRectangle *Rectangle2;
+	TText *Text2;
+	TButton *Button6;
+	TListBox *ListBox2;
+	TListBoxItem *ListBoxItem13;
+	TListBoxItem *ListBoxItem15;
+	TButton *Button7;
+	TAniIndicator *AniIndicator1;
     void __fastcall ComboBox1Change(TObject* Sender);
 	void __fastcall MenuItem3Click(TObject *Sender);
 	void __fastcall MenuItem5Click(TObject *Sender);
@@ -80,10 +100,14 @@ class TForm1 : public TForm
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall FormKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar,
           TShiftState Shift);
+	void __fastcall Button6Click(TObject *Sender);
+	void __fastcall Button7Click(TObject *Sender);
   private: // User declarations
-    TActiCHamp *actiCHamp;
+	TActiCHamp *actiCHamp;
+
   public: // User declarations
 	__fastcall TForm1(TComponent* Owner);
+  TTriggerBox *triggerbox;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1* Form1;

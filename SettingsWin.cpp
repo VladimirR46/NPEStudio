@@ -21,11 +21,9 @@ void __fastcall TForm3::SaveIDESettings()
     TStringList *jsonFile = new TStringList;
 	TJSONObject *o = new TJSONObject();
 	__try {
-
 		 o->AddPair( new TJSONPair("ShowFPS",CheckBox1->IsChecked) );
 		 o->AddPair( new TJSONPair("ShowDrawDevices",CheckBox2->IsChecked) );
          o->AddPair( new TJSONPair("OpenWorkFolder",CheckBox3->IsChecked) );
-
 		 jsonFile->Text = o->ToString();
 		 jsonFile->SaveToFile(SettingsDir+"IDE.json", TEncoding::Unicode);
 	}
@@ -40,9 +38,7 @@ void __fastcall TForm3::LoadIDESettings()
 {
 	TStringList *jsonFile = new TStringList;
 	jsonFile->LoadFromFile(SettingsDir+"IDE.json", TEncoding::Unicode);
-
 	TJSONObject *o = (TJSONObject*) TJSONObject::ParseJSONValue(jsonFile->Text);
-
 	__try
 	{
 		CheckBox1->IsChecked = o->Values["ShowFPS"]->AsType<bool>();
@@ -109,14 +105,12 @@ void __fastcall TForm3::UpdateSettings(SettingsBase *settings)
 			range->Text = it->second.value;
 			object[i] = range;
 		}
-
 		if(it->second.type == GuiType::TDirectoryPath)
 		{
            item->Padding->Left = 120;
 		   TEdit *edit = new TEdit(item);
 		   edit->Parent = item;
 		   edit->Align = TAlignLayout::VertCenter;
-
 		   TEditButton *ebutton = new TEditButton(edit);
 		   ebutton->Parent = edit;
            ebutton->StyledSettings = ebutton->StyledSettings >> TStyledSetting::Family;
@@ -124,7 +118,6 @@ void __fastcall TForm3::UpdateSettings(SettingsBase *settings)
 		   ebutton->Text = "...";
 		   ebutton->Name = "DirPatchButton";
 		   ebutton->OnClick = ButtonClick;
-
 		   edit->Text = it->second.value;
 		   object[i] = edit;
         }
@@ -137,7 +130,6 @@ void __fastcall TForm3::ButtonClick(TObject *Sender)
 	if (((TControl*)Sender)->Name == "DirPatchButton")
 	{
 		TCustomEdit *edit = ((TEditButton*)Sender)->GetEdit();
-
 		UnicodeString patch;
 		if (SelectDirectory("Укажите путь к папке", "",patch))
 			edit->Text = patch;
@@ -175,7 +167,6 @@ void __fastcall TForm3::SaveSettings(SettingsBase *settings)
 			TRange *range = static_cast<TRange*>(object[i]);
 			it->second.value = range->Text;
 		}
-
     }
 }
 //---------------------------------------------------------------------------
@@ -200,7 +191,6 @@ void __fastcall TForm3::FormCreate(TObject *Sender)
 	SettingsDir = "Settings\\";
     CreateDir(SettingsDir);
 	if(!FileExists(SettingsDir+"IDE.json")) SaveIDESettings();
-
 	std::vector<task_ptr>& Tasks = Form2->Tasks;
 	for (int i = 0; i < Tasks.size(); i++) {
 		TTreeViewItem *ItemTask= new TTreeViewItem(this);
@@ -213,7 +203,6 @@ void __fastcall TForm3::FormCreate(TObject *Sender)
 		}
 		TreeView1->AddObject(ItemTask);
 	}
-
     LoadIDESettings();
 }
 //---------------------------------------------------------------------------
@@ -260,6 +249,14 @@ void __fastcall TForm3::Button1Click(TObject *Sender)
 	}
     isSavePress = true;
 	Form3->Close();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm3::cbTBAutoConnectChange(TObject *Sender)
+{
+	Form1->triggerbox->AutoConnect(cbTBAutoConnect->IsChecked);
+	Form1->AniIndicator1->Enabled = cbTBAutoConnect->IsChecked;
+	Form1->AniIndicator1->Visible = cbTBAutoConnect->IsChecked;
+	Form1->Button7->Enabled = !cbTBAutoConnect->IsChecked;
 }
 //---------------------------------------------------------------------------
 

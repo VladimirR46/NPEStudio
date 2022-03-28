@@ -82,8 +82,8 @@
         <AllPackageLibs>rtl.lib;fmx.lib;vcl.lib;FMXTee.lib</AllPackageLibs>
         <_TCHARMapping>wchar_t</_TCHARMapping>
         <Multithreaded>true</Multithreaded>
-        <IncludePath>E:\NeuroLab\Projects\NPEStudio\;$(IncludePath)</IncludePath>
-        <ILINK_LibraryPath>E:\NeuroLab\Projects\NPEStudio\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <IncludePath>Library\Bicycle\Win\Common\;Library\Bicycle\Win\Serial\;E:\NeuroLab\Projects\NPEStudio\;$(IncludePath)</IncludePath>
+        <ILINK_LibraryPath>Library\Bicycle\Win\Common\;Library\Bicycle\Win\Serial\;E:\NeuroLab\Projects\NPEStudio\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <SanitizedProjectName>NPEStudio</SanitizedProjectName>
         <VerInfo_Locale>1049</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=Innopolis;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.7;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
@@ -164,8 +164,9 @@
         <VerInfo_Locale>7177</VerInfo_Locale>
         <BCC_EnableLSPIndexing>true</BCC_EnableLSPIndexing>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.13;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_Build>13</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.15;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>15</VerInfo_Build>
+        <BCC_EnableLSPIndexingOnChange>true</BCC_EnableLSPIndexingOnChange>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <Defines>NDEBUG;$(Defines)</Defines>
@@ -259,6 +260,10 @@
             <VirtualFolder>{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}</VirtualFolder>
             <DependentOn>TSpiralTask.h</DependentOn>
             <BuildOrder>10</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="TTriggerBox.cpp">
+            <DependentOn>TTriggerBox.h</DependentOn>
+            <BuildOrder>13</BuildOrder>
         </CppCompile>
         <FormResources Include="MainWin.fmx"/>
         <FormResources Include="DrawWin.fmx"/>
