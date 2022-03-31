@@ -89,8 +89,7 @@ public:
 		AnsiString Question;
 		AnsiString Goal;
 		AnsiString Ungoal;
-		AnsiString Type;
-        AnsiString Sample;
+		int Type;
     };
 
 	enum SettingsName : int
@@ -129,6 +128,13 @@ public:
         REST
 	} tstate;
 
+	enum QuestionType : int
+	{
+		TEXT,
+		SOUND,
+        ALL
+    };
+
 	TLearningTask(AnsiString _name, TMediaPlayer *_player);
 	void InitTask(AnsiString Path) override;
 	void StateManager() override;
@@ -141,6 +147,8 @@ public:
 	void LoadQuestions();
 	bool Questions();
 	bool Testing();
+
+    void get_questions_type(int size, std::vector<int> &type);
 
     ~TLearningTask();
 

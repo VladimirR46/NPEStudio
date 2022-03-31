@@ -4,6 +4,8 @@
 
 #include "TLearningTask.h"
 #include "ComObj.hpp"
+#include <algorithm>
+#include <random>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 //------------------------------------------------------------------------------
@@ -52,9 +54,9 @@ bool TLearningTask::Questions()
 		{
 			ClearCanva();
 
-			if(QList[QTrialCount].Type == "текст" || QList[QTrialCount].Type == "текст+звук"){
-                DrawText(QList[QTrialCount].Question+" "+QList[QTrialCount].Goal, 66);
-			}
+			//if(QList[QTrialCount].Type == QuestionType::TEXT || QList[QTrialCount].Type == QuestionType::ALL){
+				DrawText(QList[QTrialCount].Question+" "+QList[QTrialCount].Goal, 66);
+			//}
 
             /*
 			if(QList[QTrialCount].Type == "звук" || QList[QTrialCount].Type == "текст+звук") {
@@ -67,7 +69,6 @@ bool TLearningTask::Questions()
 			   }
 			}
 			*/
-
 
 			Timer->Interval = Settings->getRandFromRange(QQuastion);
 			qstate = QuestionState::REST;
@@ -104,12 +105,12 @@ bool TLearningTask::Testing()
 		case TestingState::QUESTION:
 		{
 			ClearCanva();
-
+            /*
 			if(QList[TTrialCount].Sample == "целевая")
 				DrawText(QList[TTrialCount].Question+" "+QList[TTrialCount].Goal,48);
 			if(QList[TTrialCount].Sample == "нецелевая")
 				DrawText(QList[TTrialCount].Question+" "+QList[TTrialCount].Ungoal,48);
-
+			*/
 			ButtonYes->SetVisible(true);
             ButtonNo->SetVisible(true);
             Timer->Interval = 0;
@@ -135,14 +136,16 @@ void TLearningTask::ExternalTrigger(int trigger)
 {
    if((ButtonYes->isVisible() || ButtonNo->isVisible()) && tstate == TestingState::QUESTION)
    {
+
 	   TAlphaColor color = TAlphaColorRec::Lightskyblue;
+       /*
 	   if(Settings->getInt(TShowResult))
 	   {
 		   if((trigger == 0 && QList[TTrialCount].Sample == "целевая") || (trigger == 1 && QList[TTrialCount].Sample == "нецелевая"))
 			color = TAlphaColorRec::Lightgreen;
 		   else
 			color = TAlphaColorRec::Lightcoral;
-       }
+       } */
 
 	  if(trigger == 0) {
 		if(ButtonYes->isSelect()){
@@ -168,6 +171,14 @@ void TLearningTask::ExternalTrigger(int trigger)
 		}
 	  }
    }
+}
+//------------------------------------------------------------------------------
+void TLearningTask::get_questions_type(int size, std::vector<int> &qtypes)
+{
+	for(int i = 0; i < size; i++) qtypes.push_back(i%3);
+
+	srand(time(NULL));
+	std::random_shuffle(begin(qtypes), end(qtypes));
 }
 //------------------------------------------------------------------------------
 void TLearningTask::LoadQuestions()
@@ -199,15 +210,18 @@ void TLearningTask::LoadQuestions()
 
 	TStringList *list = new TStringList();
 	list->LoadFromFile(Settings->get(PathToQuestions)+"\\Questions.csv", TEncoding::UTF8);
-	for(int i = 1; i < 31/*list->Count*/; i++)
+
+    std::vector<int> qtypes;
+    get_questions_type(list->Count-1, qtypes);
+
+	for(int i = 1; i < list->Count; i++)
 	{
         TQuestion question;
 		TStringDynArray data = SplitString(list->Strings[i],";");
 		question.Question = data[1];
 		question.Goal = data[2];
 		question.Ungoal = data[3];
-		question.Type = data[4];
-		question.Sample = data[5];
+		question.Type = qtypes[i-1];
         QList.push_back(question);
 	}
 	delete list;

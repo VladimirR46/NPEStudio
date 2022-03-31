@@ -115,7 +115,7 @@ void TBaseTask::DrawText(AnsiString text, int size, TAlphaColor color)
 	TRectF MyRect(0, 0, bitmap->Width, bitmap->Height);
 	bitmap->Canvas->Font->Size = size;
 	bitmap->Canvas->Fill->Color = color;
-	bitmap->Canvas->FillText(MyRect, text, false, 100,
+	bitmap->Canvas->FillText(MyRect, text, true, 1,
 		TFillTextFlags(), TTextAlign::Center, TTextAlign::Center);
 	bitmap->Canvas->EndScene();
 }
