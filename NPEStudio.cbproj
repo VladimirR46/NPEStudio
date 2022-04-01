@@ -5,7 +5,7 @@
         <FrameworkType>FMX</FrameworkType>
         <MainSource>NPEStudio.cpp</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -246,6 +246,11 @@
             <VirtualFolder>{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}</VirtualFolder>
             <DependentOn>TElementaryCognitiveFunctions.h</DependentOn>
             <BuildOrder>9</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="TFingerTest.cpp">
+            <VirtualFolder>{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}</VirtualFolder>
+            <DependentOn>TFingerTest.h</DependentOn>
+            <BuildOrder>14</BuildOrder>
         </CppCompile>
         <CppCompile Include="TLearningTask.cpp">
             <VirtualFolder>{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}</VirtualFolder>

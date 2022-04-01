@@ -65,8 +65,20 @@ void TBaseTask::DrawOneNumber(int number)
 	bitmap->Canvas->EndScene();
 }
 //--------------------------------------------------------------------------
-void TBaseTask::DrawNoise()
+void TBaseTask::DrawBitmap(TBitmap *_bitmap)
 {
+	bitmap->Canvas->BeginScene();
+	TRectF SrcRect(0, 0, _bitmap->Width, _bitmap->Height);
+	TRectF DstRect((bitmap->Width/2)-(_bitmap->Width/2), 0, (bitmap->Width/2)-(_bitmap->Width/2)+_bitmap->Width, _bitmap->Height);
+	bitmap->Canvas->DrawBitmap(_bitmap, SrcRect, DstRect, 1, false);
+	bitmap->Canvas->EndScene();
+}
+//--------------------------------------------------------------------------
+void TBaseTask::DrawNoise(TBitmap *_bitmap)
+{
+	TBitmap *bitmap = this->bitmap.get();
+	if(_bitmap) bitmap = _bitmap;
+
 	TBitmapData data;
     TAlphaColorRec color;
 	bitmap->Map(TMapAccess::ReadWrite, data);

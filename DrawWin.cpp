@@ -12,6 +12,7 @@
 #include "TCubeTask.h"
 #include "SettingsWin.h"
 #include "TLearningTask.h"
+#include "TFingerTest.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -66,6 +67,10 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	// Обучение
 	task_ptr LearningTask(new TLearningTask("Обучение", MediaPlayer1));
 	Tasks.push_back(LearningTask);
+
+	// Тест с пальцами
+	task_ptr FingerTest(new TFingerTest("Finger Test"));
+	Tasks.push_back(FingerTest);
 
     for (int i = 0; i < Tasks.size(); i++) {
         Form1->ComboBox1->Items->Add(Tasks[i]->GetTaskName());

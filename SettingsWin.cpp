@@ -271,3 +271,5 @@ void __fastcall TForm3::cbGlobalKeyHookChange(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+
+

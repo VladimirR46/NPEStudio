@@ -24,7 +24,14 @@
 #include <System.ImageList.hpp>
 #include <FMX.Dialogs.hpp>
 #include <FMX.Printer.hpp>
-//---------------------------------------------------------------------------
+#include <FMX.Grid.hpp>
+
+#include <FMX.Grid.Style.hpp>
+#include <FMX.ScrollBox.hpp>
+#include <System.Rtti.hpp>/
+#include <System.Rtti.hpp>
+#include <FMX.ScrollBox.hpp>/
+#include <System.Rtti.hpp>---------------------------------------------------------------------------
 class TRange : public TCustomEdit
 {
 	public:
