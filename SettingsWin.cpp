@@ -6,6 +6,8 @@
 #include "MainWin.h"
 //#include "SpiralTask.h"
 #include <fstream>
+#include "HotKeyName.hpp"
+
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -25,6 +27,17 @@ void __fastcall TForm3::SaveIDESettings()
 		 o->AddPair( new TJSONPair("ShowDrawDevices",CheckBox2->IsChecked) );
 		 o->AddPair( new TJSONPair("OpenWorkFolder",CheckBox3->IsChecked) );
 		 o->AddPair( new TJSONPair("GlobalKeyHook",cbGlobalKeyHook->IsChecked) );
+
+		 // Hotkey List
+		 TEdit *eHotKeyList[] = {eHotKey1, eHotKey2, eHotKey3, eHotKey4, eHotKey5};
+		 TSpinBox *sbTrBxInList[] = {sbTrBxIn1, sbTrBxIn2, sbTrBxIn3, sbTrBxIn4, sbTrBxIn5};
+		 for(int i = 0; i < 5; i++)
+		 {
+			o->AddPair( new TJSONPair("eHotKey"+IntToStr(i+1), eHotKeyList[i]->Text) );
+			o->AddPair( new TJSONPair("eHotKeyType"+IntToStr(i+1), eHotKeyList[i]->Tag) );
+			o->AddPair( new TJSONPair("sbTrBxIn"+IntToStr(i+1), sbTrBxInList[i]->Value) );
+         }
+
 		 jsonFile->Text = o->ToString();
 		 jsonFile->SaveToFile(SettingsDir+"IDE.json", TEncoding::Unicode);
 	}
@@ -46,6 +59,16 @@ void __fastcall TForm3::LoadIDESettings()
 		CheckBox2->IsChecked = o->Values["ShowDrawDevices"]->AsType<bool>();
 		CheckBox3->IsChecked = o->Values["OpenWorkFolder"]->AsType<bool>();
 		cbGlobalKeyHook->IsChecked = o->Values["GlobalKeyHook"]->AsType<bool>();
+
+		// Hotkey List
+		TEdit *eHotKeyList[] = {eHotKey1, eHotKey2, eHotKey3, eHotKey4, eHotKey5};
+		TSpinBox *sbTrBxInList[] = {sbTrBxIn1, sbTrBxIn2, sbTrBxIn3, sbTrBxIn4, sbTrBxIn5};
+		for(int i = 0; i < 5; i++)
+		{
+			eHotKeyList[i]->Text = o->Values["eHotKey"+IntToStr(i+1)]->AsType<UnicodeString>();
+			eHotKeyList[i]->Tag = o->Values["eHotKeyType"+IntToStr(i+1)]->AsType<int>();
+			sbTrBxInList[i]->Value = o->Values["sbTrBxIn"+IntToStr(i+1)]->AsType<int>();
+		}
 	}
 	__finally {
 		o->Free();
@@ -270,6 +293,21 @@ void __fastcall TForm3::cbGlobalKeyHookChange(TObject *Sender)
         Form1->UnSetKeyHook();
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm3::HotKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar,
+          TShiftState Shift)
+{
+	TEdit *edit = dynamic_cast <TEdit*>(Sender);
 
+	if(KeyChar) {
+		edit->Text = "<"+UnicodeString(KeyChar)+">";
+		edit->Tag = VkKeyScan(KeyChar);
+	}
+
+	if(Key) {
+		edit->Text = UnicodeString(getkeyname((int)Key));
+		edit->Tag = (int)Key;
+	}
+}
+//---------------------------------------------------------------------------
 
 

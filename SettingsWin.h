@@ -28,10 +28,14 @@
 
 #include <FMX.Grid.Style.hpp>
 #include <FMX.ScrollBox.hpp>
-#include <System.Rtti.hpp>/
 #include <System.Rtti.hpp>
-#include <FMX.ScrollBox.hpp>/
-#include <System.Rtti.hpp>---------------------------------------------------------------------------
+#include <FMX.ExtCtrls.hpp>
+#include <FMX.EditBox.hpp>
+#include <FMX.SpinBox.hpp>
+#include <System.Rtti.hpp>
+#include <FMX.ScrollBox.hpp>
+#include <System.Rtti.hpp>
+//---------------------------------------------------------------------------
 class TRange : public TCustomEdit
 {
 	public:
@@ -127,6 +131,26 @@ class TForm3 : public TForm
 	TLabel *lComName;
 	TEdit *eComName;
 	TCheckBox *cbGlobalKeyHook;
+	TLabel *lKey1;
+	TEdit *eHotKey1;
+	TLabel *lTrBox1;
+	TSpinBox *sbTrBxIn1;
+	TLabel *lKey2;
+	TEdit *eHotKey2;
+	TLabel *lTrBox2;
+	TSpinBox *sbTrBxIn2;
+	TLabel *lKey3;
+	TEdit *eHotKey3;
+	TLabel *lTrBox3;
+	TSpinBox *sbTrBxIn3;
+	TLabel *lKey4;
+	TEdit *eHotKey4;
+	TLabel *lTrBox4;
+	TSpinBox *sbTrBxIn4;
+	TLabel *lKey5;
+	TEdit *eHotKey5;
+	TLabel *lTrBox5;
+	TSpinBox *sbTrBxIn5;
     void __fastcall FormShow(TObject* Sender);
     void __fastcall FormHide(TObject* Sender);
 	void __fastcall FormCreate(TObject *Sender);
@@ -136,6 +160,7 @@ class TForm3 : public TForm
     void __fastcall ButtonClick(TObject *Sender);
 	void __fastcall cbTBAutoConnectChange(TObject *Sender);
 	void __fastcall cbGlobalKeyHookChange(TObject *Sender);
+	void __fastcall HotKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar, TShiftState Shift);
   private: // User declarations
   	AnsiString SettingsDir;
   public: // User declarations

@@ -18,13 +18,21 @@ LRESULT CALLBACK LLKeyProc(int nCode, WPARAM wParam, LPARAM lParam)
     if(nCode == HC_ACTION)
     {
 		DWORD vk = ((LPKBDLLHOOKSTRUCT)lParam)->vkCode;
-        if(wParam == WM_KEYUP) // кнопка отпущена?
+        if(wParam == WM_KEYDOWN) // кнопка отпущена?
 		{
 			if(Form1->triggerbox->Connected())
 			{
-				if(vk == (int)'1') Form1->triggerbox->SendTrigger(0);
-				if(vk == (int)'2') Form1->triggerbox->SendTrigger(1);
-				if(vk == (int)'3') Form1->triggerbox->SendTrigger(2);
+                // Hotkey List
+				TEdit *eHotKeyList[] = {Form3->eHotKey1, Form3->eHotKey2, Form3->eHotKey3, Form3->eHotKey4, Form3->eHotKey5};
+				TSpinBox *sbTrBxInList[] = {Form3->sbTrBxIn1, Form3->sbTrBxIn2, Form3->sbTrBxIn3, Form3->sbTrBxIn4, Form3->sbTrBxIn5};
+
+				for(int i = 0; i < 5; i++)
+				{
+					if(eHotKeyList[i]->Tag == vk) {
+						Form1->triggerbox->SendTrigger(sbTrBxInList[i]->Value);
+                    }
+                }
+
 			}
         }
     }
