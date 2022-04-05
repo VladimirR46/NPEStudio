@@ -27,12 +27,18 @@ int frames = 0;
 __fastcall TForm2::TForm2(TComponent* Owner) : TForm(Owner) {}
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormKeyDown(
-    TObject* Sender, WORD &Key, System::WideChar &KeyChar, TShiftState Shift)
+	TObject* Sender, WORD &Key, System::WideChar &KeyChar, TShiftState Shift)
 {
 	if (Key == VK_ESCAPE) {
 		Close();
         return;
 	}
+
+	if(Form3->cbGlobalKeyHook->IsChecked ) {
+		if(Sender == NULL) Tasks[CurrentTask]->KeyDown(Key);
+	} else {
+        Tasks[CurrentTask]->KeyDown(Key);
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormCreate(TObject* Sender)

@@ -26,11 +26,24 @@ struct ClickInfo
 	int numbers;
 };
 
+struct TrialBase
+{
+    int count;
+};
+
 struct ProtocolBase
 {
 	AnsiString BlockName = "";
 	unsigned int InstructionTime = 0;
 
+	std::vector<std::shared_ptr<TrialBase>> trial_list;
+
+	template <typename T>
+	T* AddTrial() {
+		std::shared_ptr<T> trial = std::make_shared<T>();
+		trial_list.push_back(trial);
+		return trial.get();
+	}
 };
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +57,9 @@ public:
 	void Init(UnicodeString path, SubjectInfo _sub);
 	void Save(AnsiString TaskName);
 	void SaveCubeTask(MATFile *pmat);
-    void SaveECFTask(MATFile *pmat);
+	void SaveECFTask(MATFile *pmat);
+	void SaveFingerTask(MATFile *pmat);
+
 	void SetInstractionTime(unsigned int time){
 		Data.back()->InstructionTime = time;
         instruction_count++;
@@ -53,6 +68,15 @@ public:
         return instruction_count;
     }
 	mxArray *mCreateStringArray(std::vector<AnsiString> array);
+
+	template <typename T>
+	T* AddBlock() {
+		std::shared_ptr<T> block = std::make_shared<T>();
+		Data.push_back(block);
+		return block.get();
+	}
+
+
 
     ~TProtocol();
 private:

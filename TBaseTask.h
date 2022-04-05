@@ -41,7 +41,8 @@ class TBaseTask
 	virtual void Draw() {};
 	virtual void CloseTask() = 0;
 	virtual std::shared_ptr<ProtocolBase> CreateProtocol() { return nullptr; };
-    virtual void ExternalTrigger(int trigger) {};
+	virtual void ExternalTrigger(int trigger) {};
+    virtual void KeyDown(int Key) {};
 
 	void DrawPlus();
 	void DrawOneNumber(int number);

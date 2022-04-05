@@ -5,6 +5,9 @@
 #include "TFingerTest.h"
 #include <System.Types.hpp>
 #include <System.IOUtils.hpp>
+
+#include <algorithm>
+#include <random>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
@@ -38,13 +41,13 @@ bool TFingerTest::LoadImages()
 
 	for(int i = 0; i < list.size(); i++)
 	{
-		bitmap_ptr Image(new TBitmap());
-		Image->LoadFromFile(list[i]);
-        images.push_back(Image);
+		TrialImage image(std::make_shared<TBitmap>(), ExtractFileName(list[i]));
+		image.Image->LoadFromFile(list[i]);
+		images.push_back(image);
 	}
 
-
-
+    srand(time(NULL));
+	std::random_shuffle(begin(images), end(images));
 
     return true;
 }
@@ -58,7 +61,10 @@ void TFingerTest::InitTask(AnsiString Path)
 	state = INSTRUCTION;
 	isFinished = false;
 
-    LoadImages();
+	LoadImages();
+
+    // Protocol
+	pBlock = Protocol->AddBlock<ProtocolBlock>();
 }
 //----------------------------------------------------------------------------
 void TFingerTest::StateManager()
@@ -79,14 +85,22 @@ void TFingerTest::StateManager()
 			DrawPoint(bitmap->Width-60, bitmap->Height-60, 20, TAlphaColorRec::Black);
 			Timer->Interval = Settings->getRandFromRange(RangeNoise);
 			state = IMAGE;
+			// Protocol
+			pTrial = pBlock->AddTrial<ProtocolBlock::Trial>();
+			pTrial->StateTime[NOISE] = millis();
 			break;
 		}
 		case IMAGE:
 		{
             ClearCanva(TAlphaColorRec::White);
-			DrawBitmap(images[TrialCount].get());
+			DrawBitmap(images[TrialCount].Image.get());
 			Timer->Interval = Settings->getRandFromRange(RangeImage);
             state = NOISE;
+
+			// Protocol
+			pTrial->StateTime[IMAGE] = millis();
+			pTrial->ImageName = images[TrialCount].ImageName;
+            //
 			TrialCount++;
 			break;
 		}
@@ -95,7 +109,7 @@ void TFingerTest::StateManager()
 			ClearCanva(TAlphaColorRec::White);
 			DrawText("Спасибо за участие!", 80, TAlphaColorRec::Black);
 			Timer->Interval = 2000;
-            isFinished = true;
+			isFinished = true;
 			break;
         }
 		default:
@@ -117,6 +131,15 @@ void TFingerTest::UserMouseDown(int X, int Y, TMouseButton Button)
 
 }
 //-----------------------------------------------------------------------------
+void TFingerTest::KeyDown(int Key)
+{
+	if(pTrial)
+	{
+	   pTrial->Key = Key;
+	   pTrial->KeyTime = millis();
+	}
+}
+//-----------------------------------------------------------------------------
 void TFingerTest::Draw()
 {
    	 TRectF MyRect(0, 0, bitmap->Width, bitmap->Height);
@@ -126,10 +149,10 @@ void TFingerTest::Draw()
 void TFingerTest::CloseTask()
 {
 	Timer->Interval = 0;
-
+    Protocol->Save(GetTaskName());
+	pBlock = nullptr;
+	pTrial = nullptr;
 }
-
-
 //----------------------------------------------------------------------------
 TFingerTest::~TFingerTest()
 {

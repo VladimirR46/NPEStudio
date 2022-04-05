@@ -3,6 +3,7 @@
 #include "TProtocol.h"
 #include "TElementaryCognitiveFunctions.h"
 #include "TCubeTask.h"
+#include "TFingerTest.h"
 #include <filesystem>
 #include "SettingsWin.h"
 //---------------------------------------------------------------------------
@@ -42,6 +43,10 @@ __try {
 
    	if(TaskName == "Кубы Неккера") {
 	   SaveCubeTask(pmat);
+	}
+
+	if(TaskName == "Finger Test") {
+	   SaveFingerTask(pmat);
     }
 
 	if(matClose(pmat) != 0) {
@@ -58,6 +63,59 @@ __finally{
 	  std::filesystem::current_path(path);
 }
 
+}
+//------------------------------------------------------------------------------
+void TProtocol::SaveFingerTask(MATFile *pmat)
+{
+	// Subject
+	const char *SubFieldNames[5] = {"id", "age", "gender", "hand", "edinburgh"};
+	mxArray *sub = mxCreateStructMatrix(1, 1, 5, SubFieldNames);
+	mxSetField(sub, 0, SubFieldNames[0], mxCreateDoubleScalar(0));
+	mxSetField(sub, 0, SubFieldNames[1], mxCreateDoubleScalar(subject.Age.ToDouble()));
+	mxSetField(sub, 0, SubFieldNames[2], mxCreateString(subject.Gender.c_str()));
+	mxSetField(sub, 0, SubFieldNames[3], mxCreateString(subject.ActiveHand.c_str()));
+	mxArray *edinburgh = mxCreateDoubleMatrix(10, 1, mxREAL);
+	double *x = mxGetPr(edinburgh);
+	std::fill(x, x+10, 22);
+	mxSetField(sub, 0, SubFieldNames[4], edinburgh);
+	matPutVariable(pmat, "subject", sub);
+	mxDestroyArray(sub);
+	//////////////////////////////////////
+
+    const char *fieldnames[4] = {"TimeLineName", "TimeLine", "StimulsName", "Stimuls"};
+	mxArray *block = mxCreateStructMatrix(1, 1, 4, fieldnames);
+
+    typedef TFingerTest::ProtocolBlock::Trial Trial;
+	TFingerTest::ProtocolBlock* proto_ptr = static_cast<TFingerTest::ProtocolBlock*>(Data[0].get());
+
+	mxArray* timelineName = mCreateStringArray({"Noise", "Image"});
+	mxSetField(block, 0, fieldnames[0], timelineName);
+
+	mxArray* stimulsName = mCreateStringArray({"Key","ImageName"});
+	mxSetField(block, 0, fieldnames[2], stimulsName);
+
+	mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->trial_list.size(), mxGetN(timelineName), mxREAL);
+	double *timeline_ptr = mxGetPr(timeline);
+	mxArray *stimuls_cell = mxCreateCellMatrix(proto_ptr->trial_list.size(), mxGetN(stimulsName));
+
+   	for(int j = 0; j < proto_ptr->trial_list.size(); j++)
+	{
+		Trial* trial = static_cast<Trial*>(proto_ptr->trial_list[j].get());
+
+        int size = proto_ptr->trial_list.size();
+		for(int k = 0; k < 2; k++){
+		  timeline_ptr[size*k+j] = trial->StateTime[k];
+		}
+
+		mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, mxCreateDoubleScalar(trial->Key));
+		mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mxCreateString(AnsiString(trial->ImageName).c_str()));
+	}
+
+    mxSetField(block, 0, fieldnames[1], timeline);
+	mxSetField(block, 0, fieldnames[3], stimuls_cell);
+
+	matPutVariable(pmat, "protocol", block);
+	mxDestroyArray(block);
 }
 //------------------------------------------------------------------------------
 void TProtocol::SaveCubeTask(MATFile *pmat)

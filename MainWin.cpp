@@ -34,6 +34,10 @@ LRESULT CALLBACK LLKeyProc(int nCode, WPARAM wParam, LPARAM lParam)
                 }
 
 			}
+
+			WORD Key = vk;
+            System::WideChar KeyChar = '-';
+			Form2->FormKeyDown(NULL, Key , KeyChar, TShiftState());
         }
     }
     return CallNextHookEx(NULL, nCode, wParam, lParam);
@@ -66,6 +70,16 @@ void __fastcall TForm1::MenuItem5Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnStartClick(TObject *Sender)
 {
+	/*
+	if(ComboBox1->ItemIndex == 0 || ComboBox1->ItemIndex == 1 ||
+	   ComboBox1->ItemIndex == 2 || ComboBox1->ItemIndex == 3)
+	{
+        ShowMessage("Данный тест заблокирован");
+		return;
+	}
+	*/
+
+
 	if(btnStart->ImageIndex == 0) {
 		Screen->UpdateDisplayInformation();
 		//System::Types::TRectF r1 = Screen->Displays[0].BoundsRect();

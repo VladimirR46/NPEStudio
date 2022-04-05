@@ -7,6 +7,16 @@
 
 //---------------------------------------------------------------------------
 
+struct TrialImage
+{
+	TrialImage(bitmap_ptr _image, UnicodeString _name) : Image(_image), ImageName(_name)
+	{ }
+
+	bitmap_ptr Image;
+	UnicodeString ImageName;
+};
+
+
 class TFingerTest : public TBaseTask
 {
 public:
@@ -23,8 +33,22 @@ public:
        INSTRUCTION = -1,
 	   NOISE,
 	   IMAGE,
+       Size,
        CONCLUSION
 	} state;
+
+	struct ProtocolBlock : ProtocolBase
+	{
+		struct Trial : TrialBase
+		{
+			unsigned int StateTime[State::Size] = {0};
+			int Key = 0;
+			unsigned int KeyTime = 0;
+            UnicodeString ImageName = "";
+		};
+
+
+    };
 
 
 	TFingerTest(AnsiString _name);
@@ -34,6 +58,7 @@ public:
 	void UserMouseDown(int X, int Y, TMouseButton Button) override;
 	void Draw() override;
 	void CloseTask() override;
+	void KeyDown(int Key) override;
 
     bool LoadImages();
 
@@ -45,8 +70,10 @@ private:
 	bool isFinished = false;
 
     TBitmap *ImageNoise;
-	std::vector<bitmap_ptr> images;
+	std::vector<TrialImage> images;
 
+	ProtocolBlock* pBlock = nullptr;
+	ProtocolBlock::Trial* pTrial = nullptr;
 };
 
 

@@ -89,7 +89,11 @@ public:
 		AnsiString Question;
 		AnsiString Goal;
 		AnsiString Ungoal;
-		int Type;
+		int Topic;
+        int Category;
+		int ModalityType;
+        int TestType;
+        int Number;
     };
 
 	enum SettingsName : int
@@ -148,7 +152,8 @@ public:
 	bool Questions();
 	bool Testing();
 
-    void get_questions_type(int size, std::vector<int> &type);
+	void get_modality_type();
+    void get_test_type();
 
     ~TLearningTask();
 

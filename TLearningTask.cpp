@@ -41,12 +41,25 @@ bool TLearningTask::Questions()
 {
 	if(QTrialCount == QList.size() || Settings->getInt(LearnEnable) == 0) return true;
 
-	switch(qstate) {
+	switch(qstate)
+	{
 		case QuestionState::PLUS:
 		{
 			ClearCanva();
 			DrawPlus();
-            Timer->Interval = Settings->getRandFromRange(QPlus);
+
+			int range = Settings->getRandFromRange(QPlus);
+			UnicodeString FileName = Settings->get(PathToQuestions)+"\\sounds\\"+IntToStr(QList[QTrialCount].Number)+".wav";
+			if(FileExists(FileName)) {
+				unsigned int t1= millis();
+				MediaPlayer->FileName = FileName;
+				unsigned int dt = millis() - t1;
+
+				if(dt >= Settings->getRandFromRange(QPlus)) range = 1;
+				else range = Settings->getRandFromRange(QPlus) - dt;
+			}
+
+			Timer->Interval =  range;
 			qstate = QuestionState::QUESTION;
 			break;
 		}
@@ -54,23 +67,17 @@ bool TLearningTask::Questions()
 		{
 			ClearCanva();
 
-			//if(QList[QTrialCount].Type == QuestionType::TEXT || QList[QTrialCount].Type == QuestionType::ALL){
+			int duration = (MediaPlayer->Duration / MediaTimeScale)*1000.0;
+
+			if(QList[QTrialCount].ModalityType == QuestionType::TEXT || QList[QTrialCount].ModalityType == QuestionType::ALL){
 				DrawText(QList[QTrialCount].Question+" "+QList[QTrialCount].Goal, 66);
-			//}
-
-            /*
-			if(QList[QTrialCount].Type == "звук" || QList[QTrialCount].Type == "текст+звук") {
-			   if(FileExists(Settings->get(PathToQuestions)+"\\sound\\"+QList[QTrialCount].SoundName)){
-				   unsigned int t1= millis();
-				   MediaPlayer->FileName = Settings->get(PathToQuestions)+"\\sound\\"+QList[QTrialCount].SoundName;
-				   unsigned int dt = millis() - t1;
-				   int duration = (MediaPlayer->Duration / MediaTimeScale)*1000.0;
-				   MediaPlayer->Play();
-			   }
 			}
-			*/
 
-			Timer->Interval = Settings->getRandFromRange(QQuastion);
+			if(QList[QTrialCount].ModalityType == QuestionType::SOUND || QList[QTrialCount].ModalityType == QuestionType::ALL) {
+			   MediaPlayer->Play();
+			}
+
+			Timer->Interval = duration+500;//Settings->getRandFromRange(QQuastion);
 			qstate = QuestionState::REST;
 			break;
 		}
@@ -105,12 +112,12 @@ bool TLearningTask::Testing()
 		case TestingState::QUESTION:
 		{
 			ClearCanva();
-            /*
-			if(QList[TTrialCount].Sample == "целевая")
+
+			if(QList[TTrialCount].TestType == 0)  // Целевая
 				DrawText(QList[TTrialCount].Question+" "+QList[TTrialCount].Goal,48);
-			if(QList[TTrialCount].Sample == "нецелевая")
+			if(QList[TTrialCount].TestType == 1)
 				DrawText(QList[TTrialCount].Question+" "+QList[TTrialCount].Ungoal,48);
-			*/
+
 			ButtonYes->SetVisible(true);
             ButtonNo->SetVisible(true);
             Timer->Interval = 0;
@@ -138,14 +145,14 @@ void TLearningTask::ExternalTrigger(int trigger)
    {
 
 	   TAlphaColor color = TAlphaColorRec::Lightskyblue;
-       /*
+
 	   if(Settings->getInt(TShowResult))
 	   {
-		   if((trigger == 0 && QList[TTrialCount].Sample == "целевая") || (trigger == 1 && QList[TTrialCount].Sample == "нецелевая"))
+		   if((trigger == 0 && QList[TTrialCount].TestType == 0) || (trigger == 1 && QList[TTrialCount].TestType == 1))
 			color = TAlphaColorRec::Lightgreen;
 		   else
 			color = TAlphaColorRec::Lightcoral;
-       } */
+	   }
 
 	  if(trigger == 0) {
 		if(ButtonYes->isSelect()){
@@ -173,12 +180,38 @@ void TLearningTask::ExternalTrigger(int trigger)
    }
 }
 //------------------------------------------------------------------------------
-void TLearningTask::get_questions_type(int size, std::vector<int> &qtypes)
+void TLearningTask::get_test_type()
 {
-	for(int i = 0; i < size; i++) qtypes.push_back(i%3);
-
 	srand(time(NULL));
+	std::vector<int> type1;
+	std::vector<int> type2;
+	for(int i = 0; i < QList.size()/2; i++) {
+		type1.push_back(i%2);
+		type2.push_back(i%2);
+	}
+
+	std::random_shuffle(begin(type1), end(type1));
+	std::random_shuffle(begin(type2), end(type2));
+
+    for(int i = 0; i < QList.size(); i++){
+		if(QList[i].Category == 1)
+			QList[i].TestType = type1[i];
+		if(QList[i].Category == 2)
+			QList[i].TestType = type2[i];
+	}
+}
+//------------------------------------------------------------------------------
+void TLearningTask::get_modality_type()
+{
+	srand(time(NULL));
+	std::vector<int> qtypes;
+	for(int i = 0; i < QList.size(); i++) qtypes.push_back(i%3);
+
 	std::random_shuffle(begin(qtypes), end(qtypes));
+
+	for(int i = 0; i < QList.size(); i++){
+        QList[i].ModalityType = qtypes[i];
+	}
 }
 //------------------------------------------------------------------------------
 void TLearningTask::LoadQuestions()
@@ -211,9 +244,6 @@ void TLearningTask::LoadQuestions()
 	TStringList *list = new TStringList();
 	list->LoadFromFile(Settings->get(PathToQuestions)+"\\Questions.csv", TEncoding::UTF8);
 
-    std::vector<int> qtypes;
-    get_questions_type(list->Count-1, qtypes);
-
 	for(int i = 1; i < list->Count; i++)
 	{
         TQuestion question;
@@ -221,11 +251,18 @@ void TLearningTask::LoadQuestions()
 		question.Question = data[1];
 		question.Goal = data[2];
 		question.Ungoal = data[3];
-		question.Type = qtypes[i-1];
+		question.Topic = StrToInt(data[4]);
+		question.Category = StrToInt(data[5]);
+		question.Number = i;
         QList.push_back(question);
 	}
 	delete list;
 
+    get_modality_type();
+    get_test_type();
+
+	srand(time(NULL));
+	std::random_shuffle(begin(QList), end(QList));
 }
 //------------------------------------------------------------------------------
 void TLearningTask::InitTask(AnsiString Path)
@@ -265,7 +302,8 @@ void TLearningTask::StateManager()
 		{
 			ClearCanva();
 			DrawText("Отдых",66);
-            state = TESTING;
+            std::random_shuffle(begin(QList), end(QList));
+			state = TESTING;
             Timer->Interval = Settings->getInt(QTRest);
 			break;
 		}
