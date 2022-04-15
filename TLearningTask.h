@@ -90,10 +90,10 @@ public:
 		AnsiString Goal;
 		AnsiString Ungoal;
 		int Topic;
-        int Category;
+		int Category;
 		int ModalityType;
-        int TestType;
-        int Number;
+		int TestType;
+		int Number;
     };
 
 	enum SettingsName : int
@@ -101,10 +101,13 @@ public:
 	   PathToQuestions,
 	   LearnEnable,
 	   TestEnable,
+       QBackgroundActivity,
 	   QPlus,
 	   QQuastion,
        QRest,
 	   TPlus,
+       TRest,
+       TBackgroundActivity,
        TShowResult,
 	   TShowResultTime,
        QTRest
@@ -114,23 +117,57 @@ public:
 	{
 	   LEARNING,
 	   TESTING,
-       REST,
+	   REST,
+       END,
        FINISHED
 	} state;
 
-	enum class QuestionState : int
+	enum class QuestionState
 	{
+        BEGIN = -1,
 		PLUS,
 		QUESTION,
-        REST
+		REST,
+		Size,
+        END,
+		VAS,
+        READY
 	} qstate;
 
-	enum class TestingState : int
+	struct QProtocolBlock : ProtocolBase
 	{
+		struct Trial : TQuestion, TrialBase
+		{
+			unsigned int StateTime[(int)QuestionState::Size] = {0};
+		};
+    };
+
+	enum class TestingState
+	{
+        BEGIN = -1,
 		PLUS,
 		QUESTION,
-        REST
+		REST,
+		Size,
+		VAS,
+		READY,
+        END
 	} tstate;
+
+    struct TProtocolBlock : ProtocolBase
+	{
+		struct Trial : TQuestion, TrialBase
+		{
+			unsigned int StateTime[(int)TestingState::Size] = {0};
+
+			struct KeyInfo
+			{
+				unsigned int time;
+                int key;
+            };
+			std::vector<KeyInfo> key_list;
+		};
+    };
 
 	enum QuestionType : int
 	{
@@ -147,13 +184,13 @@ public:
 	void Draw() override;
 	void CloseTask() override;
 	void ExternalTrigger(int trigger) override;
+	void VasFinished(TObject *Sender) override;
 
 	void LoadQuestions();
 	bool Questions();
 	bool Testing();
 
-	void get_modality_type();
-    void get_test_type();
+    void shuffle_by_blocks();
 
     ~TLearningTask();
 
@@ -167,6 +204,19 @@ private:
 
 	TButtonFigure *ButtonYes;
 	TButtonFigure *ButtonNo;
+
+	bool QInit = false;
+    bool TInit = false;
+
+	// Protocol
+	QProtocolBlock* qpBlock = nullptr;
+	QProtocolBlock::Trial* qpTrial = nullptr;
+
+	TProtocolBlock* tpBlock = nullptr;
+	TProtocolBlock::Trial* tpTrial = nullptr;
+
+	int QVASInterval = 0;
+    int TVASInterval = 0;
 };
 
 #endif

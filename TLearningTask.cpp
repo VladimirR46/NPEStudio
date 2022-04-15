@@ -6,6 +6,9 @@
 #include "ComObj.hpp"
 #include <algorithm>
 #include <random>
+
+#define PROTOCOL_LOGGER 1
+#define BLOCK_SIZE 6 // 60
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 //------------------------------------------------------------------------------
@@ -18,13 +21,16 @@ TLearningTask::TLearningTask(AnsiString _name, TMediaPlayer *_player)
 		Settings->Add(PathToQuestions, "Путь к вопросам", GuiType::TDirectoryPath, "");
 		Settings->Add(LearnEnable, "Обучение", GuiType::TCheckBox, 1);
 		Settings->Add(TestEnable, "Тестирование", GuiType::TCheckBox, 1);
-		Settings->Add(QPlus, "Обучение: крест", GuiType::TRange, "1000:2000");
-		Settings->Add(QQuastion, "Обучение: утверждение", GuiType::TRange, "1000:2000");
-        Settings->Add(QRest, "Обучение: отдых", GuiType::TRange, "1000:2000");
-		Settings->Add(TPlus, "Тестирование: крест", GuiType::TRange, "1000:2000");
+		Settings->Add(QBackgroundActivity, "Обучение: Фоновая активность", GuiType::TEdit, "120000");
+		Settings->Add(QPlus, "Обучение: крест", GuiType::TRange, "1000:1500");
+		Settings->Add(QQuastion, "Обучение: утверждение", GuiType::TRange, "1000:2000"); //!!
+		Settings->Add(QRest, "Обучение: отдых", GuiType::TRange, "3000:5000");
+		Settings->Add(TPlus, "Тест: крест", GuiType::TRange, "1000:1500");
+		Settings->Add(TRest, "Тест: отдых", GuiType::TRange, "1500:2000");
         Settings->Add(TShowResult, "Показа результата", GuiType::TCheckBox, 1);
+		Settings->Add(TBackgroundActivity, "Тест: Фоновая активность", GuiType::TEdit, "5000");
 		Settings->Add(TShowResultTime, "Время показа результата", GuiType::TEdit, "1500");
-        Settings->Add(QTRest, "Отдых", GuiType::TEdit, "4000");
+		Settings->Add(QTRest, "Отдых", GuiType::TEdit, "300000");
 		Settings->Save(_name);
 	}
 
@@ -41,12 +47,37 @@ bool TLearningTask::Questions()
 {
 	if(QTrialCount == QList.size() || Settings->getInt(LearnEnable) == 0) return true;
 
+	#ifdef PROTOCOL_LOGGER
+		if(!QInit){
+			qpBlock = Protocol->AddBlock<QProtocolBlock>();
+			qpBlock->BlockName = "Questions";
+            QInit = true;
+		}
+	#endif
+
 	switch(qstate)
 	{
+		case QuestionState::BEGIN:
+		{
+			ClearCanva();
+			DrawText("Отдых\n Оставляйте глаза открытыми", 66, 100);
+
+			if(QTrialCount == 0) qstate = QuestionState::VAS;
+			else qstate = QuestionState::READY;
+
+			Timer->Interval = Settings->getInt(QBackgroundActivity);
+            break;
+		}
 		case QuestionState::PLUS:
 		{
 			ClearCanva();
 			DrawPlus();
+			DrawPoint(bitmap->Width-60, bitmap->Height-60, 20, TAlphaColorRec::White);
+
+			#ifdef PROTOCOL_LOGGER
+				qpTrial = qpBlock->AddTrial<QProtocolBlock::Trial>();
+				qpTrial->StateTime[(int)QuestionState::PLUS] = millis();
+			#endif
 
 			int range = Settings->getRandFromRange(QPlus);
 			UnicodeString FileName = Settings->get(PathToQuestions)+"\\sounds\\"+IntToStr(QList[QTrialCount].Number)+".wav";
@@ -55,22 +86,33 @@ bool TLearningTask::Questions()
 				MediaPlayer->FileName = FileName;
 				unsigned int dt = millis() - t1;
 
-				if(dt >= Settings->getRandFromRange(QPlus)) range = 1;
-				else range = Settings->getRandFromRange(QPlus) - dt;
+				if(dt >= range) range = 1;
+				else range = range - dt;
 			}
 
 			Timer->Interval =  range;
 			qstate = QuestionState::QUESTION;
+
 			break;
 		}
 		case QuestionState::QUESTION:
 		{
 			ClearCanva();
 
+
 			int duration = (MediaPlayer->Duration / MediaTimeScale)*1000.0;
 
+            #ifdef PROTOCOL_LOGGER
+				qpTrial->StateTime[(int)QuestionState::QUESTION] = millis();
+				qpTrial->Number = QList[QTrialCount].Number;
+				qpTrial->ModalityType = QList[QTrialCount].ModalityType;
+				qpTrial->Question = QList[QTrialCount].Question+" "+QList[QTrialCount].Goal;
+				qpTrial->Topic = QList[QTrialCount].Topic;
+				qpTrial->Category = QList[QTrialCount].Category;
+			#endif
+
 			if(QList[QTrialCount].ModalityType == QuestionType::TEXT || QList[QTrialCount].ModalityType == QuestionType::ALL){
-				DrawText(QList[QTrialCount].Question+" "+QList[QTrialCount].Goal, 66);
+				DrawText(QList[QTrialCount].Question+" "+QList[QTrialCount].Goal, 66, 100);
 			}
 
 			if(QList[QTrialCount].ModalityType == QuestionType::SOUND || QList[QTrialCount].ModalityType == QuestionType::ALL) {
@@ -84,9 +126,37 @@ bool TLearningTask::Questions()
 		case QuestionState::REST:
 		{
 			ClearCanva();
+			#ifdef PROTOCOL_LOGGER
+				qpTrial->StateTime[(int)QuestionState::REST] = millis();
+			#endif
+
             Timer->Interval = Settings->getRandFromRange(QRest);
 			qstate = QuestionState::PLUS;
 			QTrialCount++;
+
+			if(QTrialCount == QVASInterval) {
+				qstate = QuestionState::VAS;
+				QVASInterval += BLOCK_SIZE;
+			}
+
+			break;
+		}
+		case QuestionState::VAS:
+		{
+			ClearCanva(TAlphaColorRec::Black);
+			if(QTrialCount == 0) VAS->Init({vasMental,vasPhysical});
+			if(QTrialCount > 0) VAS->Init({vasMental,vasPhysical,vasBoredom,vasEffort});
+			VAS->Run();
+
+            Timer->Interval = 0;
+			break;
+		}
+		case QuestionState::READY:
+		{
+			ClearCanva(TAlphaColorRec::Black);
+            DrawText("Приготовьтесь", 66, 100);
+            qstate = QuestionState::PLUS;
+			Timer->Interval = 5000;
 			break;
         }
 		default:
@@ -97,14 +167,41 @@ bool TLearningTask::Questions()
 //------------------------------------------------------------------------------
 bool TLearningTask::Testing()
 {
-	if(TTrialCount == QList.size() || Settings->getInt(TestEnable) == 0) return true;
+	if(tstate == TestingState::END || Settings->getInt(TestEnable) == 0) return true;
+
+    #ifdef PROTOCOL_LOGGER
+		if(!TInit){
+            shuffle_by_blocks();
+			tpBlock = Protocol->AddBlock<TProtocolBlock>();
+			tpBlock->BlockName = "Testing";
+            TInit = true;
+		}
+	#endif
 
 	switch(tstate)
 	{
+        case TestingState::BEGIN:
+		{
+			ClearCanva();
+			DrawText("Отдых\n Оставляйте глаза открытыми", 66, 100);
+
+			if(TTrialCount == 0) tstate = TestingState::VAS;
+			else tstate = TestingState::END;
+
+			Timer->Interval = Settings->getInt(TBackgroundActivity);
+            break;
+		}
 		case TestingState::PLUS:
 		{
 			ClearCanva();
-            DrawPlus();
+			DrawPlus();
+			DrawPoint(bitmap->Width-60, bitmap->Height-60, 20, TAlphaColorRec::White);
+
+			#ifdef PROTOCOL_LOGGER
+				tpTrial = tpBlock->AddTrial<TProtocolBlock::Trial>();
+				tpTrial->StateTime[(int)TestingState::PLUS] = millis();
+			#endif
+
 			Timer->Interval = Settings->getRandFromRange(TPlus);
 			tstate = TestingState::QUESTION;
 			break;
@@ -113,10 +210,23 @@ bool TLearningTask::Testing()
 		{
 			ClearCanva();
 
+			AnsiString Text = "";
 			if(QList[TTrialCount].TestType == 0)  // Целевая
-				DrawText(QList[TTrialCount].Question+" "+QList[TTrialCount].Goal,48);
+				Text = QList[TTrialCount].Question+" "+QList[TTrialCount].Goal;
 			if(QList[TTrialCount].TestType == 1)
-				DrawText(QList[TTrialCount].Question+" "+QList[TTrialCount].Ungoal,48);
+				Text = QList[TTrialCount].Question+" "+QList[TTrialCount].Ungoal;
+
+			DrawText(Text, 48, 100);
+
+            #ifdef PROTOCOL_LOGGER
+				tpTrial->StateTime[(int)TestingState::QUESTION] = millis();
+                tpTrial->Number = QList[TTrialCount].Number;
+				tpTrial->ModalityType = QList[TTrialCount].ModalityType;
+				tpTrial->Question = Text;
+				tpTrial->Topic = QList[TTrialCount].Topic;
+				tpTrial->Category = QList[TTrialCount].Category;
+				tpTrial->TestType = QList[TTrialCount].TestType;
+			#endif
 
 			ButtonYes->SetVisible(true);
             ButtonNo->SetVisible(true);
@@ -128,9 +238,38 @@ bool TLearningTask::Testing()
 			ButtonYes->SetVisible(false);
             ButtonNo->SetVisible(false);
 			ClearCanva();
-            TTrialCount++;
-			Timer->Interval = 2000;
+
+			#ifdef PROTOCOL_LOGGER
+				tpTrial->StateTime[(int)TestingState::REST] = millis();
+			#endif
+
+			TTrialCount++;
+			Timer->Interval = Settings->getRandFromRange(TRest);
 			tstate = TestingState::PLUS;
+
+			if(TTrialCount == TVASInterval) {
+				tstate = TestingState::VAS;
+				TVASInterval += BLOCK_SIZE;
+			}
+
+			break;
+		}
+        case TestingState::VAS:
+		{
+			ClearCanva(TAlphaColorRec::Black);
+			if(TTrialCount == 0) VAS->Init({vasMental,vasPhysical});
+			if(TTrialCount > 0) VAS->Init({vasMental,vasPhysical,vasBoredom,vasEffort});
+			VAS->Run();
+
+            Timer->Interval = 0;
+			break;
+		}
+		case TestingState::READY:
+		{
+			ClearCanva(TAlphaColorRec::Black);
+			DrawText("Приготовьтесь", 66, 100);
+			tstate = TestingState::PLUS;
+			Timer->Interval = 5000;
 			break;
 		}
 		default:
@@ -139,10 +278,53 @@ bool TLearningTask::Testing()
 	return false;
 }
 //------------------------------------------------------------------------------
+void TLearningTask::VasFinished(TObject *Sender)
+{
+	 ClearCanva();
+	 Timer->Interval = 300;
+
+	 if(state == LEARNING){
+
+		if(QTrialCount == 0 ) qstate = QuestionState::READY;
+		else qstate = QuestionState::BEGIN;
+
+        #ifdef PROTOCOL_LOGGER
+			for(int i = 0; i < VAS->vasQueue.size(); i++)
+			{
+				if(VAS->vasQueue[i].type == vasMental) qpBlock->pMental.push_back(VAS->vasQueue[i]);
+				else if(VAS->vasQueue[i].type == vasPhysical) qpBlock->pPhysical.push_back(VAS->vasQueue[i]);
+				else if(VAS->vasQueue[i].type == vasBoredom) qpBlock->pBoredom.push_back(VAS->vasQueue[i]);
+				else if(VAS->vasQueue[i].type == vasEffort) qpBlock->pEffort.push_back(VAS->vasQueue[i]);
+			}
+		#endif
+     }
+	 if(state == TESTING){
+
+		if(TTrialCount == QList.size()) tstate = TestingState::BEGIN;
+		else tstate = TestingState::READY;
+
+        #ifdef PROTOCOL_LOGGER
+			for(int i = 0; i < VAS->vasQueue.size(); i++)
+			{
+				if(VAS->vasQueue[i].type == vasMental) tpBlock->pMental.push_back(VAS->vasQueue[i]);
+				else if(VAS->vasQueue[i].type == vasPhysical) tpBlock->pPhysical.push_back(VAS->vasQueue[i]);
+				else if(VAS->vasQueue[i].type == vasBoredom) tpBlock->pBoredom.push_back(VAS->vasQueue[i]);
+				else if(VAS->vasQueue[i].type == vasEffort) tpBlock->pEffort.push_back(VAS->vasQueue[i]);
+			}
+		#endif
+     }
+}
+//------------------------------------------------------------------------------
 void TLearningTask::ExternalTrigger(int trigger)
 {
    if((ButtonYes->isVisible() || ButtonNo->isVisible()) && tstate == TestingState::QUESTION)
    {
+	   #ifdef PROTOCOL_LOGGER
+		TProtocolBlock::Trial::KeyInfo info;
+		info.key = trigger;
+        info.time = millis();
+		tpTrial->key_list.push_back(info);
+	   #endif
 
 	   TAlphaColor color = TAlphaColorRec::Lightskyblue;
 
@@ -180,37 +362,51 @@ void TLearningTask::ExternalTrigger(int trigger)
    }
 }
 //------------------------------------------------------------------------------
-void TLearningTask::get_test_type()
+void TLearningTask::shuffle_by_blocks()
 {
-	srand(time(NULL));
-	std::vector<int> type1;
-	std::vector<int> type2;
-	for(int i = 0; i < QList.size()/2; i++) {
-		type1.push_back(i%2);
-		type2.push_back(i%2);
+	std::vector<TQuestion> Category[2];
+
+	for(int i = 0; i < QList.size(); i++) Category[QList[i].Category-1].push_back(QList[i]);
+
+    srand(time(NULL));
+	for(int i = 0; i < 2; i++) std::random_shuffle(begin(Category[i]), end(Category[i]));
+
+	std::vector<int> modality[3];
+    std::vector<int> test[3];
+	for(int i = 0; i < QList.size()/3; i++){
+		 for(int j = 0; j < 3; j++){
+			modality[j].push_back(i%3);
+			test[j].push_back(i%2);
+         }
 	}
 
-	std::random_shuffle(begin(type1), end(type1));
-	std::random_shuffle(begin(type2), end(type2));
-
-    for(int i = 0; i < QList.size(); i++){
-		if(QList[i].Category == 1)
-			QList[i].TestType = type1[i];
-		if(QList[i].Category == 2)
-			QList[i].TestType = type2[i];
+    srand(time(NULL));
+	for(int i = 0; i < 3; i++) {
+		std::random_shuffle(begin(modality[i]), end(modality[i]));
+		std::random_shuffle(begin(test[i]), end(test[i]));
 	}
-}
-//------------------------------------------------------------------------------
-void TLearningTask::get_modality_type()
-{
-	srand(time(NULL));
-	std::vector<int> qtypes;
-	for(int i = 0; i < QList.size(); i++) qtypes.push_back(i%3);
 
-	std::random_shuffle(begin(qtypes), end(qtypes));
 
-	for(int i = 0; i < QList.size(); i++){
-        QList[i].ModalityType = qtypes[i];
+	std::vector<TQuestion> blocks[3];
+	for(int i = 0, i_block = 0; i < QList.size()/2; i++){
+	   blocks[i_block].push_back(Category[0][i]);
+	   blocks[i_block].push_back(Category[1][i]);
+
+	   if(blocks[i_block].size() == QList.size()/3) i_block++;
+	}
+
+    for(int i = 0; i < 3; i++) {
+	   std::random_shuffle(begin(blocks[i]), end(blocks[i]));
+	}
+
+	int size = QList.size();
+	QList.clear();
+	for(int i = 0; i < 3; i++) {
+		for(int j = 0; j < blocks[i].size(); j++){
+			blocks[i][j].ModalityType = modality[i][j];
+			blocks[i][j].TestType = test[i][j];
+			QList.push_back(blocks[i][j]);
+		}
 	}
 }
 //------------------------------------------------------------------------------
@@ -241,12 +437,18 @@ void TLearningTask::LoadQuestions()
 	}
 	*/
 
+	if(Settings->get(PathToQuestions) == "") {
+		ShowMessage("Ошибка: укажите путь к папке с вопросами в настройках.");
+        Form->Close();
+		return;
+	}
+
 	TStringList *list = new TStringList();
 	list->LoadFromFile(Settings->get(PathToQuestions)+"\\Questions.csv", TEncoding::UTF8);
 
 	for(int i = 1; i < list->Count; i++)
 	{
-        TQuestion question;
+		TQuestion question;
 		TStringDynArray data = SplitString(list->Strings[i],";");
 		question.Question = data[1];
 		question.Goal = data[2];
@@ -254,15 +456,12 @@ void TLearningTask::LoadQuestions()
 		question.Topic = StrToInt(data[4]);
 		question.Category = StrToInt(data[5]);
 		question.Number = i;
-        QList.push_back(question);
+		QList.push_back(question);
 	}
 	delete list;
 
-    get_modality_type();
-    get_test_type();
+	shuffle_by_blocks();
 
-	srand(time(NULL));
-	std::random_shuffle(begin(QList), end(QList));
 }
 //------------------------------------------------------------------------------
 void TLearningTask::InitTask(AnsiString Path)
@@ -273,12 +472,21 @@ void TLearningTask::InitTask(AnsiString Path)
 	ButtonYes->SetVisible(false);
 	ButtonNo->SetVisible(false);
 	state = LEARNING;
-	qstate = QuestionState::PLUS;
-    tstate = TestingState::PLUS;
+	qstate = QuestionState::BEGIN;
+
+	if(Settings->getInt(TestEnable) && Settings->getInt(LearnEnable)) tstate = TestingState::VAS;
+	else tstate = TestingState::BEGIN;
+
 	QTrialCount = 0;
     TTrialCount = 0;
     Timer->Interval = 100;
 	Timer->Enabled = true;
+
+	QInit = false;
+	TInit = false;
+
+	QVASInterval = BLOCK_SIZE;
+    TVASInterval = BLOCK_SIZE;
 }
 //------------------------------------------------------------------------------
 void TLearningTask::StateManager()
@@ -288,14 +496,14 @@ void TLearningTask::StateManager()
 		{
 			if(Questions()){
 			 if(Settings->getInt(TestEnable) && !Settings->getInt(LearnEnable)) state = TESTING;
-             else if(Settings->getInt(TestEnable) && Settings->getInt(LearnEnable)) state = REST;
-			 else state = FINISHED;
+			 else if(Settings->getInt(TestEnable) && Settings->getInt(LearnEnable)) state = REST;
+			 else state = END;
             }
 			break;
 		}
 		case TESTING:
 		{
-			if(Testing()) state = FINISHED;
+			if(Testing()) state = END;
 			break;
 		}
         case REST:
@@ -305,6 +513,14 @@ void TLearningTask::StateManager()
             std::random_shuffle(begin(QList), end(QList));
 			state = TESTING;
             Timer->Interval = Settings->getInt(QTRest);
+			break;
+		}
+		case END:
+		{
+			ClearCanva();
+			DrawText("Спасибо за участие!",66);
+			state = FINISHED;
+			Timer->Interval = 5000;
 			break;
 		}
 		default:
@@ -344,6 +560,8 @@ void TLearningTask::CloseTask()
    ClearCanva();
    ButtonYes->SetVisible(false);
    ButtonNo->SetVisible(false);
+
+   Protocol->Save(GetTaskName());
 }
 //------------------------------------------------------------------------------
 TLearningTask::~TLearningTask()

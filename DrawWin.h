@@ -20,8 +20,10 @@
 #include <FMXTee.Procs.hpp>
 #include <FMXTee.Series.hpp>
 #include <FMX.Media.hpp>
+#include <FMX.Layouts.hpp>
 //#include <boost/shared_ptr.hpp>
 #include <vector>
+#include "TVisualAnalogScale.h"
 //---------------------------------------------------------------------------
 class TForm2 : public TForm
 {
@@ -51,11 +53,13 @@ __published: // IDE-managed Components
 	void __fastcall ExternalTrigger(int trigger);
 	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 
-  private: // User declarations
 
+  private: // User declarations
+    TVisualAnalogScale *VisualAnalogScale;
   public: // User declarations
     __fastcall TForm2(TComponent* Owner);
-    int CurrentTask;
+
+	int CurrentTask;
 	std::vector<task_ptr> Tasks;
 };
 //---------------------------------------------------------------------------

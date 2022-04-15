@@ -4,8 +4,10 @@
 #include "TElementaryCognitiveFunctions.h"
 #include "TCubeTask.h"
 #include "TFingerTest.h"
+#include "TLearningTask.h"
 #include <filesystem>
 #include "SettingsWin.h"
+#include <variant>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
@@ -36,18 +38,28 @@ __try {
         return;
 	}
 
+	mat::TStruct Subject({"Name", "age", "gender", "hand"});
+	Subject.Field(0, subject.LastName+" "+subject.Name+" "+subject.Patronymic);
+	Subject.Field(1, StrToInt(subject.Age));
+	Subject.Field(2, subject.Gender);
+	Subject.Field(3, subject.ActiveHand);
+	Subject.PutToMFile(pmat, "Subject");
 
 	if(TaskName == "Элементарные когнитивные функции") {
        SaveECFTask(pmat);
     }
 
-   	if(TaskName == "Кубы Неккера") {
+	if(TaskName == "Кубы Неккера") {
 	   SaveCubeTask(pmat);
 	}
 
 	if(TaskName == "Finger Test") {
 	   SaveFingerTask(pmat);
-    }
+	}
+
+    if(TaskName == "Обучение") {
+	   SaveLearningTask(pmat);
+	}
 
 	if(matClose(pmat) != 0) {
 		ShowMessage("Ошибка: Невозможно закрыть файл протокола");
@@ -65,33 +77,160 @@ __finally{
 
 }
 //------------------------------------------------------------------------------
+
+void TProtocol::SaveLearningTask(MATFile *pmat)
+{
+	for(int idx = 0; idx < Data.size(); idx++)
+	{
+		if(Data[idx]->BlockName == "Questions")
+		{
+			typedef TLearningTask::QProtocolBlock::Trial Trial;
+			TLearningTask::QProtocolBlock* qBlock = static_cast<TLearningTask::QProtocolBlock*>(Data[idx].get());
+
+			mat::TDoubleMatrix TimeLine(qBlock->trial_list.size(), 3);
+			mat::TCellMatrix Stimuls(qBlock->trial_list.size(), 5);
+			for(int i = 0; i < qBlock->trial_list.size(); i++)
+			{
+			   Trial* trial = static_cast<Trial*>(qBlock->trial_list[i].get());
+
+			   TimeLine(i,0) = trial->StateTime[0];
+			   TimeLine(i,1) = trial->StateTime[1];
+			   TimeLine(i,2) = trial->StateTime[2];
+
+			   Stimuls(i, 0) = trial->Number;
+			   Stimuls(i, 1) = trial->Question;
+			   Stimuls(i, 2) = trial->ModalityType;
+			   Stimuls(i, 3) = trial->Topic;
+			   Stimuls(i, 4) = trial->Category;
+			}
+
+
+			mat::TStruct vas({"Mental", "Physical", "Boredom", "Effort"});
+
+			mat::TDoubleMatrix MentalMatrix(qBlock->pMental.size(), 2);
+			for(int i = 0; i < qBlock->pMental.size(); i++){
+				MentalMatrix(i,0) = qBlock->pMental[i].value;
+				MentalMatrix(i,1) = qBlock->pMental[i].global_counter;
+			}
+
+			mat::TDoubleMatrix PhysicalMatrix(qBlock->pPhysical.size(), 2);
+			for(int i = 0; i < qBlock->pPhysical.size(); i++){
+				PhysicalMatrix(i,0) = qBlock->pPhysical[i].value;
+				PhysicalMatrix(i,1) = qBlock->pPhysical[i].global_counter;
+			}
+
+			mat::TDoubleMatrix BoredomMatrix(qBlock->pBoredom.size(), 2);
+			for(int i = 0; i < qBlock->pBoredom.size(); i++){
+				BoredomMatrix(i,0) = qBlock->pBoredom[i].value;
+				BoredomMatrix(i,1) = qBlock->pBoredom[i].global_counter;
+			}
+
+			mat::TDoubleMatrix EffortMatrix(qBlock->pEffort.size(), 2);
+			for(int i = 0; i < qBlock->pEffort.size(); i++){
+				EffortMatrix(i,0) = qBlock->pEffort[i].value;
+				EffortMatrix(i,1) = qBlock->pEffort[i].global_counter;
+			}
+
+			vas.Field(0, MentalMatrix);
+			vas.Field(1, PhysicalMatrix);
+			vas.Field(2, BoredomMatrix);
+			vas.Field(3, EffortMatrix);
+
+
+
+			mat::TStruct Protocol({"TimeLineName", "TimeLine", "StimulsName", "Stimuls", "VAS"});
+			Protocol.Field(0, {"Cross","Image", "Rest"});
+			Protocol.Field(1, TimeLine);
+			Protocol.Field(2, {"Number","Question", "Modality", "Topic", "Category"});
+			Protocol.Field(3, Stimuls);
+			Protocol.Field(4, vas);
+			Protocol.PutToMFile(pmat, "QProtocol");
+		}
+
+		if(Data[idx]->BlockName == "Testing")
+		{
+			typedef TLearningTask::TProtocolBlock::Trial Trial;
+			TLearningTask::TProtocolBlock* qBlock = static_cast<TLearningTask::TProtocolBlock*>(Data[idx].get());
+
+			mat::TDoubleMatrix TimeLine(qBlock->trial_list.size(), 3);
+			mat::TCellMatrix Stimuls(qBlock->trial_list.size(), 7);
+            for(int i = 0; i < qBlock->trial_list.size(); i++)
+			{
+			   Trial* trial = static_cast<Trial*>(qBlock->trial_list[i].get());
+
+			   TimeLine(i,0) = trial->StateTime[0];
+			   TimeLine(i,1) = trial->StateTime[1];
+			   TimeLine(i,2) = trial->StateTime[2];
+
+			   Stimuls(i, 0) = trial->Number;
+			   Stimuls(i, 1) = trial->Question;
+			   Stimuls(i, 2) = trial->ModalityType;
+			   Stimuls(i, 3) = trial->Topic;
+			   Stimuls(i, 4) = trial->Category;
+               Stimuls(i, 5) = trial->TestType;
+
+			   mat::TDoubleMatrix Keys(trial->key_list.size(), 2);
+			   for(int j = 0; j < trial->key_list.size(); j++){
+				 Keys(j, 0) = trial->key_list[j].key;
+				 Keys(j, 1) = trial->key_list[j].time;
+			   }
+			   Stimuls(i, 6) = Keys;
+			}
+
+            mat::TStruct vas({"Mental", "Physical", "Boredom", "Effort"});
+
+			mat::TDoubleMatrix MentalMatrix(qBlock->pMental.size(), 2);
+			for(int i = 0; i < qBlock->pMental.size(); i++){
+				MentalMatrix(i,0) = qBlock->pMental[i].value;
+				MentalMatrix(i,1) = qBlock->pMental[i].global_counter;
+			}
+
+			mat::TDoubleMatrix PhysicalMatrix(qBlock->pPhysical.size(), 2);
+			for(int i = 0; i < qBlock->pPhysical.size(); i++){
+				PhysicalMatrix(i,0) = qBlock->pPhysical[i].value;
+				PhysicalMatrix(i,1) = qBlock->pPhysical[i].global_counter;
+			}
+
+			mat::TDoubleMatrix BoredomMatrix(qBlock->pBoredom.size(), 2);
+			for(int i = 0; i < qBlock->pBoredom.size(); i++){
+				BoredomMatrix(i,0) = qBlock->pBoredom[i].value;
+				BoredomMatrix(i,1) = qBlock->pBoredom[i].global_counter;
+			}
+
+			mat::TDoubleMatrix EffortMatrix(qBlock->pEffort.size(), 2);
+			for(int i = 0; i < qBlock->pEffort.size(); i++){
+				EffortMatrix(i,0) = qBlock->pEffort[i].value;
+				EffortMatrix(i,1) = qBlock->pEffort[i].global_counter;
+			}
+
+			vas.Field(0, MentalMatrix);
+			vas.Field(1, PhysicalMatrix);
+			vas.Field(2, BoredomMatrix);
+			vas.Field(3, EffortMatrix);
+
+			mat::TStruct Protocol({"TimeLineName", "TimeLine", "StimulsName", "Stimuls", "VAS"});
+			Protocol.Field(0, {"Cross","Image", "Rest"});
+			Protocol.Field(1, TimeLine);
+			Protocol.Field(2, {"Number","Question", "Modality", "Topic", "Category", "Test", "Keys"});
+			Protocol.Field(3, Stimuls);
+            Protocol.Field(4, vas);
+			Protocol.PutToMFile(pmat, "TProtocol");
+        }
+	}
+}
+//------------------------------------------------------------------------------
 void TProtocol::SaveFingerTask(MATFile *pmat)
 {
-	// Subject
-	const char *SubFieldNames[5] = {"id", "age", "gender", "hand", "edinburgh"};
-	mxArray *sub = mxCreateStructMatrix(1, 1, 5, SubFieldNames);
-	mxSetField(sub, 0, SubFieldNames[0], mxCreateDoubleScalar(0));
-	mxSetField(sub, 0, SubFieldNames[1], mxCreateDoubleScalar(subject.Age.ToDouble()));
-	mxSetField(sub, 0, SubFieldNames[2], mxCreateString(subject.Gender.c_str()));
-	mxSetField(sub, 0, SubFieldNames[3], mxCreateString(subject.ActiveHand.c_str()));
-	mxArray *edinburgh = mxCreateDoubleMatrix(10, 1, mxREAL);
-	double *x = mxGetPr(edinburgh);
-	std::fill(x, x+10, 22);
-	mxSetField(sub, 0, SubFieldNames[4], edinburgh);
-	matPutVariable(pmat, "subject", sub);
-	mxDestroyArray(sub);
-	//////////////////////////////////////
-
-    const char *fieldnames[4] = {"TimeLineName", "TimeLine", "StimulsName", "Stimuls"};
+	const char *fieldnames[4] = {"TimeLineName", "TimeLine", "StimulsName", "Stimuls"};
 	mxArray *block = mxCreateStructMatrix(1, 1, 4, fieldnames);
 
     typedef TFingerTest::ProtocolBlock::Trial Trial;
 	TFingerTest::ProtocolBlock* proto_ptr = static_cast<TFingerTest::ProtocolBlock*>(Data[0].get());
 
-	mxArray* timelineName = mCreateStringArray({"Noise", "Image"});
+	mxArray* timelineName = mat::mCreateStringArray({"Noise", "Image"});
 	mxSetField(block, 0, fieldnames[0], timelineName);
 
-	mxArray* stimulsName = mCreateStringArray({"Key","ImageName"});
+	mxArray* stimulsName = mat::mCreateStringArray({"Key","ImageName"});
 	mxSetField(block, 0, fieldnames[2], stimulsName);
 
 	mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->trial_list.size(), mxGetN(timelineName), mxREAL);
@@ -120,31 +259,16 @@ void TProtocol::SaveFingerTask(MATFile *pmat)
 //------------------------------------------------------------------------------
 void TProtocol::SaveCubeTask(MATFile *pmat)
 {
-	// Subject
-	const char *SubFieldNames[5] = {"id", "age", "gender", "hand", "edinburgh"};
-	mxArray *sub = mxCreateStructMatrix(1, 1, 5, SubFieldNames);
-	mxSetField(sub, 0, SubFieldNames[0], mxCreateDoubleScalar(0));
-	mxSetField(sub, 0, SubFieldNames[1], mxCreateDoubleScalar(subject.Age.ToDouble()));
-	mxSetField(sub, 0, SubFieldNames[2], mxCreateString(subject.Gender.c_str()));
-	mxSetField(sub, 0, SubFieldNames[3], mxCreateString(subject.ActiveHand.c_str()));
-	mxArray *edinburgh = mxCreateDoubleMatrix(10, 1, mxREAL);
-	double *x = mxGetPr(edinburgh);
-	std::fill(x, x+10, 22);
-	mxSetField(sub, 0, SubFieldNames[4], edinburgh);
-	matPutVariable(pmat, "subject", sub);
-	mxDestroyArray(sub);
-	//////////////////////////////////////
-
 	const char *fieldnames[4] = {"TimeLineName", "TimeLine", "StimulsName", "Stimuls"};
 	mxArray *block = mxCreateStructMatrix(1, 1, 4, fieldnames);
 
 	typedef TCubeTask::DProtocol::Trial Trial;
 	TCubeTask::DProtocol* proto_ptr = static_cast<TCubeTask::DProtocol*>(Data[0].get());
 
-	mxArray* timelineName = mCreateStringArray({"Noise", "Cube"});
+	mxArray* timelineName = mat::mCreateStringArray({"Noise", "Cube"});
 	mxSetField(block, 0, fieldnames[0], timelineName);
 
-	mxArray* stimulsName = mCreateStringArray({"CubeType","Intensity"});
+	mxArray* stimulsName = mat::mCreateStringArray({"CubeType","Intensity"});
 	mxSetField(block, 0, fieldnames[2], stimulsName);
 
 	mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
@@ -173,21 +297,6 @@ void TProtocol::SaveCubeTask(MATFile *pmat)
 //------------------------------------------------------------------------------
 void TProtocol::SaveECFTask(MATFile *pmat)
 {
-	// Subject
-	const char *fieldnames[5] = {"id", "age", "gender", "hand", "edinburgh"};
-	mxArray *sub = mxCreateStructMatrix(1, 1, 5, fieldnames);
-	mxSetField(sub, 0, fieldnames[0], mxCreateDoubleScalar(0));
-	mxSetField(sub, 0, fieldnames[1], mxCreateDoubleScalar(subject.Age.ToDouble()));
-	mxSetField(sub, 0, fieldnames[2], mxCreateString(subject.Gender.c_str()));
-	mxSetField(sub, 0, fieldnames[3], mxCreateString(subject.ActiveHand.c_str()));
-	mxArray *edinburgh = mxCreateDoubleMatrix(10, 1, mxREAL);
-	double *x = mxGetPr(edinburgh);
-	std::fill(x, x+10, 22);
-	mxSetField(sub, 0, fieldnames[4], edinburgh);
-	matPutVariable(pmat, "subject", sub);
-	mxDestroyArray(sub);
-	//////////////////////////////////////
-
 	int colsize = Data.size()+InstructionSize();
 
 	mxArray *protocol_cell = mxCreateCellMatrix(4, colsize);
@@ -217,10 +326,10 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 
 		BlockStartTime = proto_ptr->PLUS_TIME;
 
-		mxArray* timelineName = mCreateStringArray({"Cross", "Matrix", "UserClick"});
+		mxArray* timelineName = mat::mCreateStringArray({"Cross", "Matrix", "UserClick"});
 		mxSetField(block, 0, fieldnames[0], timelineName);
 
-		mxArray* stimulsName = mCreateStringArray({"MatrixShown","UserSelection"});
+		mxArray* stimulsName = mat::mCreateStringArray({"MatrixShown","UserSelection"});
 		mxSetField(block, 0, fieldnames[2], stimulsName);
 
 		mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
@@ -269,10 +378,10 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 		typedef TMentalArithmeticBlock::DProtocol::Trial Trial;
 		TMentalArithmeticBlock::DProtocol* proto_ptr = static_cast<TMentalArithmeticBlock::DProtocol*>(Data[i].get());
 
-		mxArray* timelineName = mCreateStringArray({"Cross", "Equation", "UserClick", "BlackScreen"});
+		mxArray* timelineName = mat::mCreateStringArray({"Cross", "Equation", "UserClick", "BlackScreen"});
 		mxSetField(block, 0, fieldnames[0], timelineName);
 
-		mxArray* stimulsName = mCreateStringArray({"X","N","R","Result"});
+		mxArray* stimulsName = mat::mCreateStringArray({"X","N","R","Result"});
 		mxSetField(block, 0, fieldnames[2], stimulsName);
 
 		mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
@@ -304,10 +413,10 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 		typedef TWorkingMemoryBlock::DProtocol::Trial Trial;
 		TWorkingMemoryBlock::DProtocol* proto_ptr = static_cast<TWorkingMemoryBlock::DProtocol*>(Data[i].get());
 
-        mxArray* timelineName = mCreateStringArray({"Cross", "Numbers", "BlackScreen1", "Stimul", "UserClick", "BlackScreen2"});
+        mxArray* timelineName = mat::mCreateStringArray({"Cross", "Numbers", "BlackScreen1", "Stimul", "UserClick", "BlackScreen2"});
 		mxSetField(block, 0, fieldnames[0], timelineName);
 
-		mxArray* stimulsName = mCreateStringArray({"Numbers","Stimul","Result", "ResponseTimeOut"});
+		mxArray* stimulsName = mat::mCreateStringArray({"Numbers","Stimul","Result", "ResponseTimeOut"});
 		mxSetField(block, 0, fieldnames[2], stimulsName);
 
         mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
@@ -329,7 +438,7 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 				if(trial->varray[k] == 0) array_lable.push_back("*");
                 else array_lable.push_back(IntToStr(trial->varray[k]));
             }
-            mxArray* array = mCreateStringArray(array_lable);
+            mxArray* array = mat::mCreateStringArray(array_lable);
 
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, array);
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mxCreateDoubleScalar(trial->Stimul));
@@ -346,10 +455,10 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 		typedef TVisualSearchBlock::DProtocol::Trial Trial;
 		TVisualSearchBlock::DProtocol* proto_ptr = static_cast<TVisualSearchBlock::DProtocol*>(Data[i].get());
 
-		mxArray* timelineName = mCreateStringArray({"Cross", "Number", "Table", "UserClick", "BlackScreen"});
+		mxArray* timelineName = mat::mCreateStringArray({"Cross", "Number", "Table", "UserClick", "BlackScreen"});
 		mxSetField(block, 0, fieldnames[0], timelineName);
 
-		mxArray* stimulsName = mCreateStringArray({"Numbers", "Table", "Result" });
+		mxArray* stimulsName = mat::mCreateStringArray({"Numbers", "Table", "Result" });
 		mxSetField(block, 0, fieldnames[2], stimulsName);
 
         mxArray *timeline = mxCreateDoubleMatrix(proto_ptr->Trials.size(), mxGetN(timelineName), mxREAL);
@@ -403,7 +512,7 @@ void TProtocol::Init(UnicodeString path, SubjectInfo _sub)
     instruction_count = 0;
 }
 //------------------------------------------------------------------------------
-mxArray *TProtocol::mCreateStringArray(std::vector<AnsiString> array)
+mxArray *mat::mCreateStringArray(std::vector<AnsiString> array)
 {
 	mxArray *cell = mxCreateCellMatrix(1,array.size());
 	for(int i = 0; i < array.size(); i++) {

@@ -4,6 +4,7 @@
 TCanvas* TBaseTask::Canvas;
 TTimer* TBaseTask::Timer;
 TForm* TBaseTask::Form;
+TVisualAnalogScale* TBaseTask::VAS;
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
 TBaseTask::TBaseTask(AnsiString _name) : TaskName(_name)
@@ -13,7 +14,7 @@ TBaseTask::TBaseTask(AnsiString _name) : TaskName(_name)
     //bitmap->SetSize(int(Form->Width),int(Form->Height));
 	//bitmap->Clear(TAlphaColorRec::Null ); //Alpha
 	Settings = settings_ptr(new SettingsBase(_name));
-    Protocol = protocol_ptr(new TProtocol(_name));
+	Protocol = protocol_ptr(new TProtocol(_name));
 }
 TBaseTask::TBaseTask(TBaseTask* _parent, AnsiString _name) : TBaseTask(_name)
 {
@@ -26,8 +27,10 @@ TBaseTask::TBaseTask(TBaseTask* _parent, AnsiString _name) : TBaseTask(_name)
 //--------------------------------------------------------------------------
 void TBaseTask::Init(AnsiString Path, SubjectInfo _sub)
 {
-    bitmap->SetSize(int(Form->Width),int(Form->Height));
+	bitmap->SetSize(int(Form->Width),int(Form->Height));
 	bitmap->Clear(TAlphaColorRec::Null ); //Alpha
+
+    VAS->OnFinished = VasFinished;
 
 	if(!Parent)	Protocol->Init(Path, _sub);
 	InitTask(Path);
@@ -121,10 +124,10 @@ void TBaseTask::DrawPoint(int CenterX, int CenterY, int size, TAlphaColor color)
     bitmap->Canvas->EndScene();
 }
 //--------------------------------------------------------------------------
-void TBaseTask::DrawText(AnsiString text, int size, TAlphaColor color)
+void TBaseTask::DrawText(AnsiString text, int size, int horShift, TAlphaColor color)
 {
 	bitmap->Canvas->BeginScene();
-	TRectF MyRect(0, 0, bitmap->Width, bitmap->Height);
+	TRectF MyRect(horShift, 0, bitmap->Width-horShift, bitmap->Height);
 	bitmap->Canvas->Font->Size = size;
 	bitmap->Canvas->Fill->Color = color;
 	bitmap->Canvas->FillText(MyRect, text, true, 1,
@@ -253,32 +256,40 @@ TBaseTask::chrono_time TBaseTask::midnight_time(chrono_time& now)
 	date->tm_sec = 0;
 	return std::chrono::system_clock::from_time_t(std::mktime(date));
 }
+//-------------------------------------------------------------------------
 unsigned int TBaseTask::millis()
 {
 	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 	return std::chrono::duration_cast<std::chrono::milliseconds>(now - midnight_time(now)).count();
 }
+//-------------------------------------------------------------------------
 unsigned int TBaseTask::micros()
 {
    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
    return std::chrono::duration_cast<std::chrono::microseconds>(now - midnight_time(now)).count();
 }
+//-------------------------------------------------------------------------
 AnsiString TBaseTask::GetTaskName()
 {
 	return TaskName;
 }
+//-------------------------------------------------------------------------
 settings_ptr TBaseTask::GetSettings()
 {
 	return Settings;
 }
+//-------------------------------------------------------------------------
 bitmap_ptr TBaseTask::GetBitmap()
 {
 	return bitmap;
 }
+//-------------------------------------------------------------------------
 protocol_ptr TBaseTask::GetProtocol()
 {
 	return Protocol;
 }
+//-------------------------------------------------------------------------
 TBaseTask::~TBaseTask()
 {
 }
+//------------------------------------------------------------------------------

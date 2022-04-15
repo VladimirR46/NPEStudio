@@ -9,6 +9,7 @@
 #include <vector>
 #include "TProtocol.h"
 #include "SettingsBase.h"
+#include "TVisualAnalogScale.h"
 //---------------------------------------------------------------------------
 class TBaseTask;
 typedef std::shared_ptr<TBaseTask> task_ptr;
@@ -24,6 +25,7 @@ class TBaseTask
 	static TCanvas* Canvas;
 	static TTimer* Timer;
 	static TForm* Form;
+	static TVisualAnalogScale* VAS;
 
 	TBaseTask(AnsiString _name);
 	TBaseTask(TBaseTask* _parent, AnsiString _name);
@@ -42,12 +44,13 @@ class TBaseTask
 	virtual void CloseTask() = 0;
 	virtual std::shared_ptr<ProtocolBase> CreateProtocol() { return nullptr; };
 	virtual void ExternalTrigger(int trigger) {};
-    virtual void KeyDown(int Key) {};
+	virtual void KeyDown(int Key) {};
+    virtual void VasFinished(TObject *Sender) {};
 
 	void DrawPlus();
 	void DrawOneNumber(int number);
 	void DrawTable(int numbers[], int size);
-	void DrawText(AnsiString text, int size, TAlphaColor color = TAlphaColorRec::White);
+	void DrawText(AnsiString text, int size, int horShift = 0, TAlphaColor color = TAlphaColorRec::White);
 	void DrawSymbols(int array[], int FontSize);
 	void DrawNoise(TBitmap *_bitmap = nullptr);
 	void DrawPoint(int size);

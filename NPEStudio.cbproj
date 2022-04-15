@@ -164,8 +164,8 @@
         <VerInfo_Locale>7177</VerInfo_Locale>
         <BCC_EnableLSPIndexing>true</BCC_EnableLSPIndexing>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.15;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_Build>15</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.19;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>19</VerInfo_Build>
         <BCC_EnableLSPIndexingOnChange>true</BCC_EnableLSPIndexingOnChange>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -269,6 +269,10 @@
         <CppCompile Include="TTriggerBox.cpp">
             <DependentOn>TTriggerBox.h</DependentOn>
             <BuildOrder>13</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="TVisualAnalogScale.cpp">
+            <DependentOn>TVisualAnalogScale.h</DependentOn>
+            <BuildOrder>15</BuildOrder>
         </CppCompile>
         <FormResources Include="MainWin.fmx"/>
         <FormResources Include="DrawWin.fmx"/>

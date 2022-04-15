@@ -43,10 +43,13 @@ void __fastcall TForm2::FormKeyDown(
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormCreate(TObject* Sender)
 {
+	VisualAnalogScale = new TVisualAnalogScale(Form2);
+
 	Randomize();
 	TBaseTask::Canvas = PaintBox1->Canvas;
 	TBaseTask::Timer = Timer1;
 	TBaseTask::Form = Form2;
+	TBaseTask::VAS = VisualAnalogScale;
 
 	// Ёлементарные когнитивные функции
 	task_ptr ECFTask(new TElementaryCognitiveFunctions("Ёлементарные когнитивные функции"));
@@ -85,7 +88,7 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormShow(TObject* Sender)
 {
-    Label1->Visible = Form3->CheckBox1->IsChecked;
+	Label1->Visible = Form3->CheckBox1->IsChecked;
     Label2->Visible = Form3->CheckBox2->IsChecked;
     //---------------------------------
 	Label2->Text = Canvas->ClassName();
@@ -109,6 +112,7 @@ void __fastcall TForm2::FormShow(TObject* Sender)
     Path = Path + " " + timName;
 	CreateDir(Path);
 
+	VisualAnalogScale->Resize(System::Types::TRect(400,400,Form2->Width-800,Form2->Height-600));
 	Tasks[CurrentTask]->Init(Path, subject);
 	Tasks[CurrentTask]->StartTask();
 
@@ -176,7 +180,6 @@ void __fastcall TForm2::PaintBox1Paint(TObject *Sender, TCanvas *Canvas)
     }
 	frames++;
 
-
 	if(Canvas->BeginScene())
 	{
 		__try
@@ -193,7 +196,6 @@ void __fastcall TForm2::PaintBox1Paint(TObject *Sender, TCanvas *Canvas)
 		   Canvas->EndScene();
 		}
 	}
-
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormClose(TObject *Sender, TCloseAction &Action)
@@ -204,4 +206,3 @@ void __fastcall TForm2::FormClose(TObject *Sender, TCloseAction &Action)
     if(Form1->triggerbox->Connected()) Form1->triggerbox->SendData(0xFF);
 }
 //---------------------------------------------------------------------------
-

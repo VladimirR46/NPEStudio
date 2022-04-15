@@ -70,14 +70,15 @@ void __fastcall TForm1::MenuItem5Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnStartClick(TObject *Sender)
 {
-	/*
+     /*
 	if(ComboBox1->ItemIndex == 0 || ComboBox1->ItemIndex == 1 ||
-	   ComboBox1->ItemIndex == 2 || ComboBox1->ItemIndex == 3)
+	   ComboBox1->ItemIndex == 3)
 	{
         ShowMessage("Данный тест заблокирован");
 		return;
 	}
 	*/
+
 
 
 	if(btnStart->ImageIndex == 0) {
@@ -87,7 +88,7 @@ void __fastcall TForm1::btnStartClick(TObject *Sender)
 		Form2->Left = Screen->Displays[cbMonitors->ItemIndex].BoundsRect().Left;
 		//Form2->Height = Screen->Displays[ComboBox4->ItemIndex].BoundsRect().Bottom;
 		//Form2->Width = Screen->Displays[ComboBox4->ItemIndex].BoundsRect().Right;
-		Form2->Show();
+		Form2->ShowModal();
         btnStart->ImageIndex = 7;
 	}
 	else {
