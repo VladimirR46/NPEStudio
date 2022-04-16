@@ -3,6 +3,7 @@
 #pragma hdrstop
 
 #include "TVisualAnalogScale.h"
+#include "DrawWin.h"
 #include <algorithm>
 #include <random>
 //---------------------------------------------------------------------------
@@ -61,7 +62,7 @@ TVisualAnalogScale::TVisualAnalogScale(TForm* Form)
 	rectangle = new TRectangle(layout);
 	rectangle->Parent = layout;
 
-	TText *textButton = new TText(rectangle);
+	textButton = new TText(rectangle);
 	textButton->Parent = rectangle;
 	textButton->Text = "Продолжить";
 	textButton->Align = TAlignLayout::Client;
@@ -75,7 +76,6 @@ TVisualAnalogScale::TVisualAnalogScale(TForm* Form)
 	rectangle->Stroke->Thickness = 4;
 	rectangle->Stroke->Color = TAlphaColorRec::White;
 	rectangle->Fill->Color = TAlphaColorRec::Black;
-	rectangle->Margins->Left = 880;
 	rectangle->Align = TAlignLayout::Bottom;
 
     layout->Visible = false;
@@ -90,11 +90,16 @@ void TVisualAnalogScale::Resize(System::Types::TRect rec)
 	layout->Position->Y = rec.Top;
 	layout->Height = rec.Bottom;
 	layout->Width = rec.Right;
+
+	rectangle->Margins->Left = (layout->Width*75)/100;
 }
 
 void __fastcall TVisualAnalogScale::TextClick(TObject *Sender)
 {
 	layout->Visible = false;
+
+	Form2->PaintBox1->Cursor = crNone;
+	textButton->Cursor = crNone;
 
 	vasQueue[vasIndex].value = track->Value;
     vasQueue[vasIndex].global_counter = VASGlobalCount;
@@ -104,7 +109,7 @@ void __fastcall TVisualAnalogScale::TextClick(TObject *Sender)
      	timer->Interval = 300;
 		vasIndex++;
 	} else {
-        timer->Interval = 0;
+		timer->Interval = 0;
 		OnFinishedEvent(Sender);
     }
 }
@@ -158,7 +163,10 @@ void __fastcall TVisualAnalogScale::TimerEvent(TObject *Sender)
 	text->Text = vasQueue[vasIndex].text;
 	track->Value = 0;
 	layout->Visible = true;
-    VASGlobalCount++;
+	VASGlobalCount++;
+
+	Form2->PaintBox1->Cursor = crDefault;
+	textButton->Cursor = crDefault;
 }
 //------------------------------------------------------------------------------
 void TVisualAnalogScale::Run()
@@ -170,6 +178,9 @@ void TVisualAnalogScale::Run()
 
    layout->Visible = true;
    VASGlobalCount++;
+
+	Form2->PaintBox1->Cursor = crDefault;
+    textButton->Cursor = crDefault;
 }
 //------------------------------------------------------------------------------
 TVisualAnalogScale::~TVisualAnalogScale()

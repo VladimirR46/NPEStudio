@@ -88,6 +88,8 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormShow(TObject* Sender)
 {
+    Form2->PaintBox1->Cursor = crNone;
+
 	Label1->Visible = Form3->CheckBox1->IsChecked;
     Label2->Visible = Form3->CheckBox2->IsChecked;
     //---------------------------------
@@ -112,7 +114,9 @@ void __fastcall TForm2::FormShow(TObject* Sender)
     Path = Path + " " + timName;
 	CreateDir(Path);
 
-	VisualAnalogScale->Resize(System::Types::TRect(400,400,Form2->Width-800,Form2->Height-600));
+	int Y_Perc = 25; //%
+	int X_Perc = 20; // %
+	VisualAnalogScale->Resize(System::Types::TRect((Form2->Width*X_Perc)/100,(Form2->Height*Y_Perc)/100,(Form2->Width*(100-X_Perc*2))/100,(Form2->Height*(100-Y_Perc*2))/100));
 	Tasks[CurrentTask]->Init(Path, subject);
 	Tasks[CurrentTask]->StartTask();
 

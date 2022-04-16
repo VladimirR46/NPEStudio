@@ -136,14 +136,19 @@ void TProtocol::SaveLearningTask(MATFile *pmat)
 			vas.Field(2, BoredomMatrix);
 			vas.Field(3, EffortMatrix);
 
+			mat::TDoubleMatrix Backgrounds(qBlock->Backgrounds.size(), 2);
+			for(int i = 0; i < qBlock->Backgrounds.size(); i++){
+			   Backgrounds(i,0) = qBlock->Backgrounds[i].begin;
+			   Backgrounds(i,1) = qBlock->Backgrounds[i].end;
+			}
 
-
-			mat::TStruct Protocol({"TimeLineName", "TimeLine", "StimulsName", "Stimuls", "VAS"});
+			mat::TStruct Protocol({"TimeLineName", "TimeLine", "StimulsName", "Stimuls", "VAS", "Backgrounds"});
 			Protocol.Field(0, {"Cross","Image", "Rest"});
 			Protocol.Field(1, TimeLine);
 			Protocol.Field(2, {"Number","Question", "Modality", "Topic", "Category"});
 			Protocol.Field(3, Stimuls);
 			Protocol.Field(4, vas);
+			Protocol.Field(5, Backgrounds);
 			Protocol.PutToMFile(pmat, "QProtocol");
 		}
 
@@ -153,7 +158,7 @@ void TProtocol::SaveLearningTask(MATFile *pmat)
 			TLearningTask::TProtocolBlock* qBlock = static_cast<TLearningTask::TProtocolBlock*>(Data[idx].get());
 
 			mat::TDoubleMatrix TimeLine(qBlock->trial_list.size(), 3);
-			mat::TCellMatrix Stimuls(qBlock->trial_list.size(), 7);
+			mat::TCellMatrix Stimuls(qBlock->trial_list.size(), 6);
             for(int i = 0; i < qBlock->trial_list.size(); i++)
 			{
 			   Trial* trial = static_cast<Trial*>(qBlock->trial_list[i].get());
@@ -164,17 +169,16 @@ void TProtocol::SaveLearningTask(MATFile *pmat)
 
 			   Stimuls(i, 0) = trial->Number;
 			   Stimuls(i, 1) = trial->Question;
-			   Stimuls(i, 2) = trial->ModalityType;
-			   Stimuls(i, 3) = trial->Topic;
-			   Stimuls(i, 4) = trial->Category;
-               Stimuls(i, 5) = trial->TestType;
+			   Stimuls(i, 2) = trial->Topic;
+			   Stimuls(i, 3) = trial->Category;
+               Stimuls(i, 4) = trial->TestType;
 
 			   mat::TDoubleMatrix Keys(trial->key_list.size(), 2);
 			   for(int j = 0; j < trial->key_list.size(); j++){
 				 Keys(j, 0) = trial->key_list[j].key;
 				 Keys(j, 1) = trial->key_list[j].time;
 			   }
-			   Stimuls(i, 6) = Keys;
+			   Stimuls(i, 5) = Keys;
 			}
 
             mat::TStruct vas({"Mental", "Physical", "Boredom", "Effort"});
@@ -208,12 +212,19 @@ void TProtocol::SaveLearningTask(MATFile *pmat)
 			vas.Field(2, BoredomMatrix);
 			vas.Field(3, EffortMatrix);
 
-			mat::TStruct Protocol({"TimeLineName", "TimeLine", "StimulsName", "Stimuls", "VAS"});
+            mat::TDoubleMatrix Backgrounds(qBlock->Backgrounds.size(), 2);
+			for(int i = 0; i < qBlock->Backgrounds.size(); i++){
+			   Backgrounds(i,0) = qBlock->Backgrounds[i].begin;
+			   Backgrounds(i,1) = qBlock->Backgrounds[i].end;
+			}
+
+			mat::TStruct Protocol({"TimeLineName", "TimeLine", "StimulsName", "Stimuls", "VAS", "Backgrounds"});
 			Protocol.Field(0, {"Cross","Image", "Rest"});
 			Protocol.Field(1, TimeLine);
-			Protocol.Field(2, {"Number","Question", "Modality", "Topic", "Category", "Test", "Keys"});
+			Protocol.Field(2, {"Number","Question", "Topic", "Category", "Test", "Keys"});
 			Protocol.Field(3, Stimuls);
-            Protocol.Field(4, vas);
+			Protocol.Field(4, vas);
+            Protocol.Field(5, Backgrounds);
 			Protocol.PutToMFile(pmat, "TProtocol");
         }
 	}

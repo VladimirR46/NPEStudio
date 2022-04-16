@@ -88,7 +88,7 @@ void __fastcall TForm1::btnStartClick(TObject *Sender)
 		Form2->Left = Screen->Displays[cbMonitors->ItemIndex].BoundsRect().Left;
 		//Form2->Height = Screen->Displays[ComboBox4->ItemIndex].BoundsRect().Bottom;
 		//Form2->Width = Screen->Displays[ComboBox4->ItemIndex].BoundsRect().Right;
-		Form2->ShowModal();
+		Form2->Show();
         btnStart->ImageIndex = 7;
 	}
 	else {

@@ -45,7 +45,7 @@ TLearningTask::TLearningTask(AnsiString _name, TMediaPlayer *_player)
 //------------------------------------------------------------------------------
 bool TLearningTask::Questions()
 {
-	if(QTrialCount == QList.size() || Settings->getInt(LearnEnable) == 0) return true;
+	if(qstate == QuestionState::END || Settings->getInt(LearnEnable) == 0) return true;
 
 	#ifdef PROTOCOL_LOGGER
 		if(!QInit){
@@ -66,6 +66,9 @@ bool TLearningTask::Questions()
 			else qstate = QuestionState::READY;
 
 			Timer->Interval = Settings->getInt(QBackgroundActivity);
+
+			qpBlock->SetBackgroundTime(millis(), millis()+Timer->Interval);
+
             break;
 		}
 		case QuestionState::PLUS:
@@ -189,7 +192,9 @@ bool TLearningTask::Testing()
 			else tstate = TestingState::END;
 
 			Timer->Interval = Settings->getInt(TBackgroundActivity);
-            break;
+
+			tpBlock->SetBackgroundTime(millis(), millis()+Timer->Interval);
+			break;
 		}
 		case TestingState::PLUS:
 		{
@@ -281,11 +286,11 @@ bool TLearningTask::Testing()
 void TLearningTask::VasFinished(TObject *Sender)
 {
 	 ClearCanva();
-	 Timer->Interval = 300;
 
 	 if(state == LEARNING){
 
 		if(QTrialCount == 0 ) qstate = QuestionState::READY;
+		else if(QTrialCount == QList.size()) qstate = QuestionState::END;
 		else qstate = QuestionState::BEGIN;
 
         #ifdef PROTOCOL_LOGGER
@@ -312,7 +317,9 @@ void TLearningTask::VasFinished(TObject *Sender)
 				else if(VAS->vasQueue[i].type == vasEffort) tpBlock->pEffort.push_back(VAS->vasQueue[i]);
 			}
 		#endif
-     }
+	 }
+
+	 Timer->Interval = 300;
 }
 //------------------------------------------------------------------------------
 void TLearningTask::ExternalTrigger(int trigger)

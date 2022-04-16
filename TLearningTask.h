@@ -81,6 +81,15 @@ private:
 };
 ////////////////////////////////////////////////////////////////////////////////
 
+struct TimePair
+{
+	TimePair(unsigned int _begin, unsigned int _end) : begin(_begin), end(_end)
+	{}
+
+	unsigned int begin = 0;
+	unsigned int end = 0;
+};
+
 class TLearningTask : public TBaseTask
 {
 public:
@@ -140,6 +149,13 @@ public:
 		{
 			unsigned int StateTime[(int)QuestionState::Size] = {0};
 		};
+
+		std::vector<TimePair> Backgrounds;
+
+		void SetBackgroundTime(unsigned int begin, unsigned int end)
+		{
+		   Backgrounds.push_back(TimePair(begin,end));
+        }
     };
 
 	enum class TestingState
@@ -167,6 +183,13 @@ public:
             };
 			std::vector<KeyInfo> key_list;
 		};
+
+		std::vector<TimePair> Backgrounds;
+
+		void SetBackgroundTime(unsigned int begin, unsigned int end)
+		{
+		   Backgrounds.push_back(TimePair(begin,end));
+        }
     };
 
 	enum QuestionType : int

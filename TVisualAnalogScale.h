@@ -34,6 +34,8 @@ public:
    TTrackBar* track;
    TButton* button;
    TRectangle *rectangle;
+   TLayout* layout;
+   TText *textButton;
 
     // Events
 	__property void OnFinished = { write=SetOnFinished }; // !!!!!!!!!
@@ -54,7 +56,6 @@ public:
 
 private:
     TTimer* timer;
-	TLayout* layout;
 	TNotifyEvent OnFinishedEvent;
 
 
