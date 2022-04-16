@@ -8,7 +8,7 @@
 #include <random>
 
 #define PROTOCOL_LOGGER 1
-#define BLOCK_SIZE 6 // 60
+#define BLOCK_SIZE 60
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 //------------------------------------------------------------------------------

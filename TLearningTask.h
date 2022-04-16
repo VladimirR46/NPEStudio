@@ -1,12 +1,9 @@
 //---------------------------------------------------------------------------
-
 #ifndef TLearningTaskH
 #define TLearningTaskH
-
 #include "TBaseTask.h"
 #include <FMX.Media.hpp>
 //---------------------------------------------------------------------------
-
 class TButtonFigure
 {
 	enum State
@@ -15,14 +12,12 @@ class TButtonFigure
 		SELECTED,
         PRESSED
 	};
-
 public:
 	TButtonFigure(TBitmap *_bitmap)
 	{
 		bitmap = _bitmap;
 		state = NORMAL;
 	}
-
 	void Draw()
 	{
 		if(Visible)
@@ -31,11 +26,9 @@ public:
 			bitmap->Canvas->BeginScene();
 			bitmap->Canvas->Font->Size = TextSize;
 			bitmap->Canvas->Stroke->Thickness = Thickness;
-
             // Clear bitmap
             bitmap->Canvas->Fill->Color = TAlphaColorRec::Black;
 			bitmap->Canvas->FillRect(TRectF(X-sizeX-Thickness/2,Y-sizeY-Thickness/2,X+sizeX+Thickness/2,Y+sizeY+Thickness/2), 1);
-
 			// Draw
 			switch(state)
 			{
@@ -57,7 +50,6 @@ public:
 			bitmap->Canvas->EndScene();
 		}
 	}
-
 	void SetPosition(int _x, int _y) { X = _x; Y = _y; }
 	void SetSize(int _sizeX, int _sizeY) { sizeX = _sizeX; sizeY = _sizeY; }
 	void Select() { state = SELECTED; }
@@ -67,7 +59,6 @@ public:
 	void SetText(AnsiString str, int text_size) { Text = str; TextSize = text_size;	}
 	void SetVisible(bool value) { state = NORMAL; Visible = value; }
 	bool isVisible() {return Visible; }
-
 private:
 	State state;
 	int TextSize = 0;
@@ -80,7 +71,6 @@ private:
     TAlphaColor PressColor;
 };
 ////////////////////////////////////////////////////////////////////////////////
-
 struct TimePair
 {
 	TimePair(unsigned int _begin, unsigned int _end) : begin(_begin), end(_end)
@@ -89,7 +79,6 @@ struct TimePair
 	unsigned int begin = 0;
 	unsigned int end = 0;
 };
-
 class TLearningTask : public TBaseTask
 {
 public:
@@ -104,7 +93,6 @@ public:
 		int TestType;
 		int Number;
     };
-
 	enum SettingsName : int
 	{
 	   PathToQuestions,
@@ -121,7 +109,6 @@ public:
 	   TShowResultTime,
        QTRest
     };
-
 	enum State : int
 	{
 	   LEARNING,
@@ -130,7 +117,6 @@ public:
        END,
        FINISHED
 	} state;
-
 	enum class QuestionState
 	{
         BEGIN = -1,
@@ -142,22 +128,18 @@ public:
 		VAS,
         READY
 	} qstate;
-
 	struct QProtocolBlock : ProtocolBase
 	{
 		struct Trial : TQuestion, TrialBase
 		{
 			unsigned int StateTime[(int)QuestionState::Size] = {0};
 		};
-
 		std::vector<TimePair> Backgrounds;
-
 		void SetBackgroundTime(unsigned int begin, unsigned int end)
 		{
 		   Backgrounds.push_back(TimePair(begin,end));
         }
     };
-
 	enum class TestingState
 	{
         BEGIN = -1,
@@ -169,13 +151,11 @@ public:
 		READY,
         END
 	} tstate;
-
     struct TProtocolBlock : ProtocolBase
 	{
 		struct Trial : TQuestion, TrialBase
 		{
 			unsigned int StateTime[(int)TestingState::Size] = {0};
-
 			struct KeyInfo
 			{
 				unsigned int time;
@@ -183,22 +163,18 @@ public:
             };
 			std::vector<KeyInfo> key_list;
 		};
-
 		std::vector<TimePair> Backgrounds;
-
 		void SetBackgroundTime(unsigned int begin, unsigned int end)
 		{
 		   Backgrounds.push_back(TimePair(begin,end));
         }
     };
-
 	enum QuestionType : int
 	{
 		TEXT,
 		SOUND,
         ALL
     };
-
 	TLearningTask(AnsiString _name, TMediaPlayer *_player);
 	void InitTask(AnsiString Path) override;
 	void StateManager() override;
@@ -208,38 +184,26 @@ public:
 	void CloseTask() override;
 	void ExternalTrigger(int trigger) override;
 	void VasFinished(TObject *Sender) override;
-
 	void LoadQuestions();
 	bool Questions();
 	bool Testing();
-
     void shuffle_by_blocks();
-
     ~TLearningTask();
-
 private:
 	TMediaPlayer *MediaPlayer;
-
 	std::vector<TQuestion> QList;
 	int QTrialCount = 0;
-
     int TTrialCount = 0;
-
 	TButtonFigure *ButtonYes;
 	TButtonFigure *ButtonNo;
-
 	bool QInit = false;
     bool TInit = false;
-
 	// Protocol
 	QProtocolBlock* qpBlock = nullptr;
 	QProtocolBlock::Trial* qpTrial = nullptr;
-
 	TProtocolBlock* tpBlock = nullptr;
 	TProtocolBlock::Trial* tpTrial = nullptr;
-
 	int QVASInterval = 0;
     int TVASInterval = 0;
 };
-
 #endif
