@@ -123,7 +123,7 @@ class TForm3 : public TForm
 	TGroupBox *GroupBox1;
 	TEdit *EditClientTP;
 	TLabel *Label2;
-	TTreeViewItem *TreeViewItem4;
+	TTreeViewItem *tviTriggerBox;
 	TTabItem *TabItem5;
 	TGroupBox *gbConnection;
 	TCheckBox *cbTBAutoConnect;
@@ -151,6 +151,18 @@ class TForm3 : public TForm
 	TEdit *eHotKey5;
 	TLabel *lTrBox5;
 	TSpinBox *sbTrBxIn5;
+	TTabItem *TabItemLsl;
+	TTreeViewItem *tviLabStreamingLayer;
+	TGroupBox *GroupBox3;
+	TListBox *lbLslThreadsName;
+	TLabel *Label3;
+	TComboBox *ComboBox1;
+	TListBoxItem *ListBoxItem1;
+	TListBoxItem *ListBoxItem2;
+	TButton *bAddLslThread;
+	TButton *bDeleteLslThread;
+	TCheckBox *cbHideLslWin;
+	TCheckBox *cbStopLslRec;
     void __fastcall FormShow(TObject* Sender);
     void __fastcall FormHide(TObject* Sender);
 	void __fastcall FormCreate(TObject *Sender);
@@ -161,6 +173,11 @@ class TForm3 : public TForm
 	void __fastcall cbTBAutoConnectChange(TObject *Sender);
 	void __fastcall cbGlobalKeyHookChange(TObject *Sender);
 	void __fastcall HotKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar, TShiftState Shift);
+	void __fastcall bAddLslThreadClick(TObject *Sender);
+	void __fastcall AddLslThreadInfo(AnsiString name, AnsiString type);
+	void __fastcall bDeleteLslThreadClick(TObject *Sender);
+	void __fastcall cbHideLslWinChange(TObject *Sender);
+	void __fastcall cbStopLslRecChange(TObject *Sender);
   private: // User declarations
   	AnsiString SettingsDir;
   public: // User declarations

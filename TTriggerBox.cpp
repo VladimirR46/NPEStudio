@@ -263,7 +263,7 @@ void __fastcall TReadThread::Execute()
 
 		 Synchronize([&]()
 		 {
-			if(error != "") Form1->Memo1->Lines->Add(error);
+			if(error != "") ShowMessage(error);
 			Form1->Button7->ImageIndex = 5;
 		 });
 
@@ -272,7 +272,7 @@ void __fastcall TReadThread::Execute()
 	catch (...)
 	{
 		 Synchronize([this]() {
-			Form1->Memo1->Lines->Add("exception in read thread");
+			ShowMessage("exception in read thread");
 		 });
 	}
 }

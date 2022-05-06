@@ -151,11 +151,6 @@ void __fastcall TForm1::FormKeyDown(TObject *Sender, WORD &Key, System::WideChar
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::Button6Click(TObject *Sender)
-{
-    Memo1->Lines->Clear();
-}
-//---------------------------------------------------------------------------
 void __fastcall TForm1::Button7Click(TObject *Sender)
 {
 	if(Button7->ImageIndex == 4)
@@ -169,14 +164,14 @@ void __fastcall TForm1::Button7Click(TObject *Sender)
 	}
 
 	if(Form3->eComName->Text == ""){
-		Memo1->Lines->Add("Ошибка: укажите имя COM порта в настройках");
+		ShowMessage("Ошибка: укажите имя COM порта в настройках");
         return;
 	}
 
 	if(triggerbox->OpenComPort(AnsiString(Form3->eComName->Text).c_str())) {
 		Button7->ImageIndex = 4;
 	} else {
-		Memo1->Lines->Add("Ошибка: Невозможно подключиться к "+ Form3->eComName->Text);
+		ShowMessage("Ошибка: Невозможно подключиться к "+ Form3->eComName->Text);
     }
 }
 //---------------------------------------------------------------------------
@@ -199,4 +194,6 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
     UnSetKeyHook();
 }
 //---------------------------------------------------------------------------
+
+
 

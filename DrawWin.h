@@ -55,7 +55,8 @@ __published: // IDE-managed Components
 
 
   private: // User declarations
-    TVisualAnalogScale *VisualAnalogScale;
+	TVisualAnalogScale *VisualAnalogScale;
+
   public: // User declarations
     __fastcall TForm2(TComponent* Owner);
 

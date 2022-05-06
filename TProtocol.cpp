@@ -226,6 +226,20 @@ void TProtocol::SaveLearningTask(MATFile *pmat)
 			Protocol.Field(4, vas);
             Protocol.Field(5, Backgrounds);
 			Protocol.PutToMFile(pmat, "TProtocol");
+		}
+
+		if(Data[idx]->BlockName == "Main")
+		{
+			TLearningTask::MProtocolBlock* qBlock = static_cast<TLearningTask::MProtocolBlock*>(Data[idx].get());
+
+			mat::TDoubleMatrix Backgrounds(qBlock->GlobalRest.size(), 2);
+			for(int i = 0; i < qBlock->GlobalRest.size(); i++){
+			   Backgrounds(i,0) = qBlock->GlobalRest[i].begin;
+			   Backgrounds(i,1) = qBlock->GlobalRest[i].end;
+			}
+
+			matPutVariable(pmat, "GlobalRest", Backgrounds);
+			mxDestroyArray(Backgrounds);
         }
 	}
 }

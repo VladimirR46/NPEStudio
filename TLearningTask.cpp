@@ -8,7 +8,7 @@
 #include <random>
 
 #define PROTOCOL_LOGGER 1
-#define BLOCK_SIZE 60
+
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 //------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ TLearningTask::TLearningTask(AnsiString _name, TMediaPlayer *_player)
 		Settings->Add(TPlus, "Тест: крест", GuiType::TRange, "1000:1500");
 		Settings->Add(TRest, "Тест: отдых", GuiType::TRange, "1500:2000");
         Settings->Add(TShowResult, "Показа результата", GuiType::TCheckBox, 1);
-		Settings->Add(TBackgroundActivity, "Тест: Фоновая активность", GuiType::TEdit, "5000");
+		Settings->Add(TBackgroundActivity, "Тест: Фоновая активность", GuiType::TEdit, "120000");
 		Settings->Add(TShowResultTime, "Время показа результата", GuiType::TEdit, "1500");
 		Settings->Add(QTRest, "Отдых", GuiType::TEdit, "300000");
 		Settings->Save(_name);
@@ -122,7 +122,7 @@ bool TLearningTask::Questions()
 			   MediaPlayer->Play();
 			}
 
-			Timer->Interval = duration+500;//Settings->getRandFromRange(QQuastion);
+			Timer->Interval = duration+500; //Settings->getRandFromRange(QQuastion);
 			qstate = QuestionState::REST;
 			break;
 		}
@@ -375,7 +375,8 @@ void TLearningTask::shuffle_by_blocks()
 
 	for(int i = 0; i < QList.size(); i++) Category[QList[i].Category-1].push_back(QList[i]);
 
-    srand(time(NULL));
+
+	srand(time(NULL));
 	for(int i = 0; i < 2; i++) std::random_shuffle(begin(Category[i]), end(Category[i]));
 
 	std::vector<int> modality[3];
@@ -469,6 +470,7 @@ void TLearningTask::LoadQuestions()
 
 	shuffle_by_blocks();
 
+	BLOCK_SIZE = QList.size()/3;
 }
 //------------------------------------------------------------------------------
 void TLearningTask::InitTask(AnsiString Path)
@@ -493,7 +495,10 @@ void TLearningTask::InitTask(AnsiString Path)
 	TInit = false;
 
 	QVASInterval = BLOCK_SIZE;
-    TVASInterval = BLOCK_SIZE;
+	TVASInterval = BLOCK_SIZE;
+
+	mpBlock = Protocol->AddBlock<MProtocolBlock>();
+    mpBlock->BlockName = "Main";
 }
 //------------------------------------------------------------------------------
 void TLearningTask::StateManager()
@@ -516,10 +521,13 @@ void TLearningTask::StateManager()
         case REST:
 		{
 			ClearCanva();
-			DrawText("Отдых",66);
-            std::random_shuffle(begin(QList), end(QList));
+			DrawText("Отдых\n Оставляйте глаза открытыми",66);
+
+			mpBlock->SetGlobalRestTime(millis(), millis()+Settings->getInt(QTRest));
+
+			std::random_shuffle(begin(QList), end(QList));
 			state = TESTING;
-            Timer->Interval = Settings->getInt(QTRest);
+			Timer->Interval = Settings->getInt(QTRest);
 			break;
 		}
 		case END:
@@ -527,7 +535,7 @@ void TLearningTask::StateManager()
 			ClearCanva();
 			DrawText("Спасибо за участие!",66);
 			state = FINISHED;
-			Timer->Interval = 5000;
+			Timer->Interval = 10000;
 			break;
 		}
 		default:

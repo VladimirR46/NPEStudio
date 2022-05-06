@@ -13,6 +13,7 @@
 #include "SettingsWin.h"
 #include "TLearningTask.h"
 #include "TFingerTest.h"
+#include "TVerbalWorkingMemoryTask.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -50,6 +51,7 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	TBaseTask::Timer = Timer1;
 	TBaseTask::Form = Form2;
 	TBaseTask::VAS = VisualAnalogScale;
+	TBaseTask::lsl = std::make_shared<TLabStreamingLayer>();
 
 	// Элементарные когнитивные функции
 	task_ptr ECFTask(new TElementaryCognitiveFunctions("Элементарные когнитивные функции"));
@@ -80,6 +82,10 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 	// Тест с пальцами
 	task_ptr FingerTest(new TFingerTest("Finger Test"));
 	Tasks.push_back(FingerTest);
+
+	// Тест с пальцами
+	task_ptr VerbWorkMemoryTest(new TVerbalWorkingMemory("Verbal Working Memory"));
+	Tasks.push_back(VerbWorkMemoryTest);
 
     for (int i = 0; i < Tasks.size(); i++) {
         Form1->ComboBox1->Items->Add(Tasks[i]->GetTaskName());

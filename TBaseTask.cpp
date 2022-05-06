@@ -5,6 +5,7 @@ TCanvas* TBaseTask::Canvas;
 TTimer* TBaseTask::Timer;
 TForm* TBaseTask::Form;
 TVisualAnalogScale* TBaseTask::VAS;
+lsl_ptr TBaseTask::lsl;
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
 TBaseTask::TBaseTask(AnsiString _name) : TaskName(_name)

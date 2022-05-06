@@ -92,7 +92,8 @@ public:
 		int ModalityType;
 		int TestType;
 		int Number;
-    };
+	};
+
 	enum SettingsName : int
 	{
 	   PathToQuestions,
@@ -108,7 +109,8 @@ public:
        TShowResult,
 	   TShowResultTime,
        QTRest
-    };
+	};
+
 	enum State : int
 	{
 	   LEARNING,
@@ -117,6 +119,7 @@ public:
        END,
        FINISHED
 	} state;
+
 	enum class QuestionState
 	{
         BEGIN = -1,
@@ -128,6 +131,7 @@ public:
 		VAS,
         READY
 	} qstate;
+
 	struct QProtocolBlock : ProtocolBase
 	{
 		struct Trial : TQuestion, TrialBase
@@ -139,7 +143,8 @@ public:
 		{
 		   Backgrounds.push_back(TimePair(begin,end));
         }
-    };
+	};
+
 	enum class TestingState
 	{
         BEGIN = -1,
@@ -151,6 +156,7 @@ public:
 		READY,
         END
 	} tstate;
+
     struct TProtocolBlock : ProtocolBase
 	{
 		struct Trial : TQuestion, TrialBase
@@ -168,13 +174,24 @@ public:
 		{
 		   Backgrounds.push_back(TimePair(begin,end));
         }
-    };
+	};
+
+	struct MProtocolBlock : ProtocolBase
+	{
+		std::vector<TimePair> GlobalRest;
+		void SetGlobalRestTime(unsigned int begin, unsigned int end)
+		{
+		   GlobalRest.push_back(TimePair(begin,end));
+        }
+	};
+
 	enum QuestionType : int
 	{
 		TEXT,
 		SOUND,
         ALL
-    };
+	};
+
 	TLearningTask(AnsiString _name, TMediaPlayer *_player);
 	void InitTask(AnsiString Path) override;
 	void StateManager() override;
@@ -188,7 +205,8 @@ public:
 	bool Questions();
 	bool Testing();
     void shuffle_by_blocks();
-    ~TLearningTask();
+	~TLearningTask();
+
 private:
 	TMediaPlayer *MediaPlayer;
 	std::vector<TQuestion> QList;
@@ -198,12 +216,18 @@ private:
 	TButtonFigure *ButtonNo;
 	bool QInit = false;
     bool TInit = false;
+
 	// Protocol
 	QProtocolBlock* qpBlock = nullptr;
 	QProtocolBlock::Trial* qpTrial = nullptr;
 	TProtocolBlock* tpBlock = nullptr;
 	TProtocolBlock::Trial* tpTrial = nullptr;
+
+	MProtocolBlock* mpBlock = nullptr;
+
 	int QVASInterval = 0;
-    int TVASInterval = 0;
+	int TVASInterval = 0;
+
+    int BLOCK_SIZE = 60;
 };
 #endif

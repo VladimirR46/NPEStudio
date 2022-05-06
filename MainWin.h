@@ -77,19 +77,15 @@ class TForm1 : public TForm
 	TRectangle *Rectangle1;
 	TImage *Image1;
 	TText *Text1;
-	TPanel *Panel2;
-	TRectangle *Rectangle3;
-	TText *Text3;
-	TMemo *Memo1;
 	TPanel *Panel3;
 	TRectangle *Rectangle2;
 	TText *Text2;
-	TButton *Button6;
 	TListBox *ListBox2;
 	TListBoxItem *ListBoxItem13;
 	TListBoxItem *ListBoxItem15;
 	TButton *Button7;
 	TAniIndicator *AniIndicator1;
+	TStatusBar *StatusBar1;
     void __fastcall ComboBox1Change(TObject* Sender);
 	void __fastcall MenuItem3Click(TObject *Sender);
 	void __fastcall MenuItem5Click(TObject *Sender);
@@ -100,7 +96,6 @@ class TForm1 : public TForm
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall FormKeyDown(TObject *Sender, WORD &Key, System::WideChar &KeyChar,
           TShiftState Shift);
-	void __fastcall Button6Click(TObject *Sender);
 	void __fastcall Button7Click(TObject *Sender);
 	void __fastcall FormDestroy(TObject *Sender);
   private: // User declarations

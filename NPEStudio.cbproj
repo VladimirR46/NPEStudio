@@ -5,7 +5,7 @@
         <FrameworkType>FMX</FrameworkType>
         <MainSource>NPEStudio.cpp</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -158,9 +158,9 @@
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <LinkPackageImports>rtl.bpi;fmx.bpi;vcl.bpi;FMXTee.bpi</LinkPackageImports>
-        <IncludePath>Library\Matlab\Win64\Matlab2020b\extern\include;Library\actiCHamp;$(IncludePath)</IncludePath>
+        <IncludePath>Library\Matlab\Win64\Matlab2020b\extern\include;Library\actiCHamp;Library\liblsl-1.16.0-Win_amd64\include;$(IncludePath)</IncludePath>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <ILINK_LibraryPath>Library\Matlab\Win64\Matlab2020b\extern\lib\win64\borland;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Library\Matlab\Win64\Matlab2020b\extern\lib\win64\borland;Library\liblsl-1.16.0-Win_amd64\lib\rad;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <VerInfo_Locale>7177</VerInfo_Locale>
         <BCC_EnableLSPIndexing>true</BCC_EnableLSPIndexing>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
@@ -204,6 +204,10 @@
             <FormType>fmx</FormType>
             <DependentOn>DrawWin.h</DependentOn>
             <BuildOrder>3</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="LabStreamingLayer.cpp">
+            <DependentOn>LabStreamingLayer.h</DependentOn>
+            <BuildOrder>17</BuildOrder>
         </CppCompile>
         <CppCompile Include="MainWin.cpp">
             <Form>Form1</Form>
@@ -269,6 +273,11 @@
         <CppCompile Include="TTriggerBox.cpp">
             <DependentOn>TTriggerBox.h</DependentOn>
             <BuildOrder>13</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="TVerbalWorkingMemoryTask.cpp">
+            <VirtualFolder>{BC7EA6E7-CD81-4B83-A2E7-5927650D9E40}</VirtualFolder>
+            <DependentOn>TVerbalWorkingMemoryTask.h</DependentOn>
+            <BuildOrder>16</BuildOrder>
         </CppCompile>
         <CppCompile Include="TVisualAnalogScale.cpp">
             <DependentOn>TVisualAnalogScale.h</DependentOn>

@@ -36,6 +36,27 @@ void __fastcall TForm3::SaveIDESettings()
 			o->AddPair( new TJSONPair("eHotKey"+IntToStr(i+1), eHotKeyList[i]->Text) );
 			o->AddPair( new TJSONPair("eHotKeyType"+IntToStr(i+1), eHotKeyList[i]->Tag) );
 			o->AddPair( new TJSONPair("sbTrBxIn"+IntToStr(i+1), sbTrBxInList[i]->Value) );
+		 }
+
+		 // Lsl threads name
+		 o->AddPair( new TJSONPair("HideLslWin",cbHideLslWin->IsChecked) );
+		 o->AddPair( new TJSONPair("StopLslRec",cbStopLslRec->IsChecked) );
+
+		 TJSONArray *a = new TJSONArray();
+		 o->AddPair("lslThreadsName", a);
+
+		 for(int i = 0; i < lbLslThreadsName->Count; i++)
+		 {
+			 TListBoxItem* item = lbLslThreadsName->ItemByIndex(i);
+			 TFmxObject* obj = item->Children->Items[1];
+			 if(obj->ClassType() == __classid(TEdit))
+			 {
+				  TEdit *edit = static_cast<TEdit*>(obj);
+
+				  TJSONObject *info = new TJSONObject();
+				  info->AddPair( new TJSONPair("name",edit->Text) );
+				  a->AddElement(info);
+			 }
          }
 
 		 jsonFile->Text = o->ToString();
@@ -69,6 +90,22 @@ void __fastcall TForm3::LoadIDESettings()
 			eHotKeyList[i]->Tag = o->Values["eHotKeyType"+IntToStr(i+1)]->AsType<int>();
 			sbTrBxInList[i]->Value = o->Values["sbTrBxIn"+IntToStr(i+1)]->AsType<int>();
 		}
+
+		// Lsl threads name
+		cbHideLslWin->IsChecked = o->Values["HideLslWin"]->AsType<bool>();
+		cbStopLslRec->IsChecked = o->Values["StopLslRec"]->AsType<bool>();
+
+        lbLslThreadsName->Clear();
+		TJSONArray *a = (TJSONArray*) o->Get("lslThreadsName")->JsonValue;
+		for (int idx = 0; idx < a->Size(); idx++)
+		{
+		  TJSONObject *info = (TJSONObject*) a->Get(idx);
+		  for (int idy = 0; idy < info->Count; idy++) {
+            //book->Pairs[idy]->JsonString->ToString() = name
+			AddLslThreadInfo(info->Pairs[idy]->JsonValue->AsType<UnicodeString>(),"");
+		  }
+		}
+
 	}
 	__finally {
 		o->Free();
@@ -78,7 +115,7 @@ void __fastcall TForm3::LoadIDESettings()
 //---------------------------------------------------------------------------
 void __fastcall TForm3::UpdateSettings(SettingsBase *settings)
 {
-    ListBox1->Clear();
+	ListBox1->Clear();
 	parameter_list &list = settings->GetParametersList();
 	int i = 0;
     ListBox1->BeginUpdate();
@@ -309,5 +346,43 @@ void __fastcall TForm3::HotKeyDown(TObject *Sender, WORD &Key, System::WideChar 
 	}
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm3::AddLslThreadInfo(AnsiString name, AnsiString type)
+{
+	TListBoxItem* item = new TListBoxItem(lbLslThreadsName);
+	item->Parent = lbLslThreadsName;
+	item->Text = "Имя:";
+	item->StyledSettings = item->StyledSettings >> TStyledSetting::Size;
+	item->TextSettings->Font->Size = 12;
+	item->Height = 25;
+	item->Padding->Left = 40;
+    item->Padding->Right = 10;
 
+	TEdit *edit = new TEdit(item);
+	edit->Parent = item;
+	edit->Align = TAlignLayout::VertCenter;
+    edit->Text = name;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm3::bAddLslThreadClick(TObject *Sender)
+{
+	AddLslThreadInfo("","");
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm3::bDeleteLslThreadClick(TObject *Sender)
+{
+  if(lbLslThreadsName->ItemIndex != -1)
+  	lbLslThreadsName->Items->Delete(lbLslThreadsName->ItemIndex);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm3::cbHideLslWinChange(TObject *Sender)
+{
+   if(cbHideLslWin->IsChecked)
+    cbStopLslRec->IsChecked = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm3::cbStopLslRecChange(TObject *Sender)
+{
+	if(cbHideLslWin->IsChecked) cbStopLslRec->IsChecked = true;
+}
+//---------------------------------------------------------------------------
 

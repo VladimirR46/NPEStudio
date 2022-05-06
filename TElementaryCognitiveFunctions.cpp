@@ -101,7 +101,7 @@ void TElementaryCognitiveFunctions::UserMouseDown(int X, int Y, TMouseButton But
 }
 void TElementaryCognitiveFunctions::Draw()
 {
-   	 TRectF MyRect(0, 0, bitmap->Width, bitmap->Height);
+	 TRectF MyRect(0, 0, bitmap->Width, bitmap->Height);
 	 Canvas->DrawBitmap(bitmap.get(), MyRect, MyRect, 1, false);
 }
 void TElementaryCognitiveFunctions::CloseTask()

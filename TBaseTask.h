@@ -10,6 +10,7 @@
 #include "TProtocol.h"
 #include "SettingsBase.h"
 #include "TVisualAnalogScale.h"
+#include "LabStreamingLayer.h"
 //---------------------------------------------------------------------------
 class TBaseTask;
 typedef std::shared_ptr<TBaseTask> task_ptr;
@@ -26,6 +27,7 @@ class TBaseTask
 	static TTimer* Timer;
 	static TForm* Form;
 	static TVisualAnalogScale* VAS;
+	static lsl_ptr lsl;
 
 	TBaseTask(AnsiString _name);
 	TBaseTask(TBaseTask* _parent, AnsiString _name);
