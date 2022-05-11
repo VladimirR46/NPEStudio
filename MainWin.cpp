@@ -5,6 +5,7 @@
 #include "DrawWin.h"
 #include "SettingsWin.h"
 #include <filesystem>
+#include <FMX.FontGlyphs.hpp>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -191,7 +192,7 @@ void __fastcall TForm1::UnSetKeyHook()
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
 {
-    UnSetKeyHook();
+	UnSetKeyHook();
 }
 //---------------------------------------------------------------------------
 

@@ -1,6 +1,10 @@
 //---------------------------------------------------------------------------
 #pragma hdrstop
 #include "TBaseTask.h"
+
+#include <FMX.FontGlyphs.Win.hpp>
+#include <FMX.Helpers.Win.hpp>
+
 TCanvas* TBaseTask::Canvas;
 TTimer* TBaseTask::Timer;
 TForm* TBaseTask::Form;
@@ -191,6 +195,45 @@ void TBaseTask::DrawSymbols(int array[], int FontSize)
 	bitmap->Canvas->EndScene();
 }
 //--------------------------------------------------------------------------
+void TBaseTask::DrawSymArray(std::vector<std::string> array)
+{
+   bitmap->Canvas->Fill->Color = claWhite;
+
+   int row = 2;
+   int col = 4;
+   int RectSize = Form->Height * 0.6 / row;
+   int FontSize = RectSize * 0.6;
+   int x = Form->Width / 2 - col/2 * RectSize;
+   int y = Form->Height / 2 - row/2 * RectSize;
+   bitmap->Canvas->Font->Size = FontSize;
+   bitmap->Canvas->Font->Family = "Arial";
+
+	System::Types::TRect rect;
+    int idx = 0;
+    bitmap->Canvas->BeginScene();
+	for (int i = 0; i < row; i++) {
+		for (int j = 0; j < col; j++) {
+			int x_begin = j * RectSize + x;
+			int y_begin = i * RectSize + y;
+			int x_end = j * RectSize + RectSize + x;
+			int y_end = i * RectSize + RectSize + y;
+			rect = System::Types::TRect(x_begin, y_begin, x_end, y_end);
+            bitmap->Canvas->Stroke->Thickness = 1;
+			bitmap->Canvas->Stroke->Color = TAlphaColors::White;
+			bitmap->Canvas->DrawRect(rect, 0, 0, AllCorners, 1);
+			bitmap->Canvas->FillText(rect, array[idx++].c_str(), false, 1, TFillTextFlags(), TTextAlign::Center, TTextAlign::Center);
+
+			System::Types::TRect bbox = GetBoundingBox(rect, UnicodeString(array[idx-1].c_str()), bitmap->Canvas->Font,TTextAlign::Center, TTextAlign::Center);
+			bitmap->Canvas->Stroke->Thickness = 2;
+			bitmap->Canvas->Stroke->Color = TAlphaColors::Red;
+			bitmap->Canvas->DrawRect(bbox, 0, 0, AllCorners, 100);
+
+		}
+	}
+
+   bitmap->Canvas->EndScene();
+}
+//--------------------------------------------------------------------------
 void TBaseTask::SaveSettings()
 {
 	if(Parent) {
@@ -288,6 +331,84 @@ bitmap_ptr TBaseTask::GetBitmap()
 protocol_ptr TBaseTask::GetProtocol()
 {
 	return Protocol;
+}
+//-------------------------------------------------------------------------
+TTextMetric TBaseTask::GetTextMetrics(Fmx::Graphics::TFont* const Font)
+{
+    TTextMetric metric;
+	HDC DC;
+	HFONT tFont;
+
+	DC = CreateCompatibleDC(0);
+
+	int Height = -round(Font->Size * GetDCScale(DC));
+
+	tFont = ::CreateFont(Height, 0, 0, 0, FontWeightToWinapi(Font->StyleExt.Weight),
+	  Cardinal(1),
+      0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+      CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+	  DEFAULT_PITCH | FF_DONTCARE, Font->Family.w_str());
+
+	SelectObject(DC, tFont);
+	::GetTextMetrics(DC, &metric);
+
+	DeleteObject(tFont);
+	DeleteDC(DC);
+
+	return metric;
+}
+//-------------------------------------------------------------------------
+ftGlyphMetrics TBaseTask::GetGlyphMetrics(UnicodeString symbol, Fmx::Graphics::TFont* const Font)
+{
+   ftGlyphMetrics metrics = {0};
+
+   TCHAR windir[MAX_PATH];
+   GetWindowsDirectory(windir, MAX_PATH);
+
+   AnsiString family = AnsiString(windir)+"\\Fonts\\"+Font->Family+".ttf";
+
+   FT_Library ft;
+   if (FT_Init_FreeType(&ft))
+		return metrics;
+
+   FT_Face face;
+   if (FT_New_Face(ft, family.c_str(), 0, &face))
+		return metrics;
+
+   FT_Set_Pixel_Sizes(face, 0, Font->Size);
+
+   if (FT_Load_Char(face, symbol.w_str()[0], FT_LOAD_RENDER))
+		return metrics;
+
+   metrics.width = face->glyph->bitmap.width;
+   metrics.height = face->glyph->bitmap.rows;
+   metrics.bearingY = face->glyph->bitmap_top;
+   metrics.bearingX = face->glyph->bitmap_left;
+   metrics.advance = face->glyph->advance.x;
+
+   return metrics;
+}
+//-------------------------------------------------------------------------
+System::Types::TRect TBaseTask::GetBoundingBox(System::Types::TRect textRect, UnicodeString symbol, Fmx::Graphics::TFont* const Font, const Fmx::Types::TTextAlign ATextAlign, const Fmx::Types::TTextAlign AVTextAlign)
+{
+   TRect rect;
+   int x_offset = 0;
+   int y_offset = 0;
+   TTextMetric tMetric = GetTextMetrics(Font);
+   ftGlyphMetrics gMetric = GetGlyphMetrics(symbol, Font);
+   int BaseLine = TFontGlyphManager::Current->GetBaseline(Font,bitmap->Canvas->Scale) + tMetric.tmExternalLeading;
+
+   if(ATextAlign == TTextAlign::Center)
+	x_offset = (textRect.Right - textRect.Left)/2 - (gMetric.advance/(64*2));
+   if(AVTextAlign == TTextAlign::Center)
+   	y_offset = ((textRect.bottom - textRect.top) - (tMetric.tmHeight + tMetric.tmExternalLeading))/2;
+
+
+   rect.Left = textRect.Left + gMetric.bearingX + x_offset;
+   rect.Top = textRect.Top + (BaseLine - gMetric.bearingY) + y_offset;
+   rect.Right = textRect.Left + gMetric.bearingX + gMetric.width + x_offset;
+   rect.Bottom =  textRect.Top + BaseLine + (gMetric.height - gMetric.bearingY) + y_offset;
+   return rect;
 }
 //-------------------------------------------------------------------------
 TBaseTask::~TBaseTask()

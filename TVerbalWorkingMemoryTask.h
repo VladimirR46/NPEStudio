@@ -22,10 +22,21 @@ public:
 
 	enum SettingsName : int
 	{
+	   MaxBlockCount,
+	   MaxTrialPerCmplexity,
+	   MaxSymbolCount,
+	   Complexity,
+	   BeginTime,
+	   CrossTimeRange,
+	   SymbolsTimeRange,
+	   RestTimeRange,
+	   SymbolTimeRange,
+	   Rest2TimeRange,
+       EndTime,
 	   RangeCross
 	};
 
-	enum State : int
+	enum class State : int
 	{
 	   BEGIN,
 	   CROSS,
@@ -33,6 +44,7 @@ public:
 	   REST1,
        CHAR,
        REST2,
+       VAS,
 	   END,
 	   THANKS,
 	   FINISHED,
@@ -47,6 +59,7 @@ public:
 	void UserMouseDown(int X, int Y, TMouseButton Button) override;
 	void Draw() override;
 	void CloseTask() override;
+    void VasFinished(TObject *Sender) override;
 	//--------------------------------------------------------------------------
 	void gen_sample();
     void samples_to_lsl(std::vector<Sample>& samples, samples_t &xml_sample);
@@ -55,10 +68,11 @@ private:
 	std::vector<std::string> alphabet;
 
 	int TrialCount = 0;
+    int BlockCount = 0;
 	bool isFinished = false;
 
 	std::vector<Sample> sample_list;
-
+    std::vector<int> block_index;
 };
 
 

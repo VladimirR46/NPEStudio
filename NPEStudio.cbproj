@@ -158,14 +158,14 @@
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <LinkPackageImports>rtl.bpi;fmx.bpi;vcl.bpi;FMXTee.bpi</LinkPackageImports>
-        <IncludePath>Library\Matlab\Win64\Matlab2020b\extern\include;Library\actiCHamp;Library\liblsl-1.16.0-Win_amd64\include;$(IncludePath)</IncludePath>
+        <IncludePath>Library\Matlab\Win64\Matlab2020b\extern\include;Library\actiCHamp;Library\liblsl-1.16.0-Win_amd64\include;Library\freetype-windows-binaries-2.12.1\include;$(IncludePath)</IncludePath>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <ILINK_LibraryPath>Library\Matlab\Win64\Matlab2020b\extern\lib\win64\borland;Library\liblsl-1.16.0-Win_amd64\lib\rad;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Library\Matlab\Win64\Matlab2020b\extern\lib\win64\borland;Library\liblsl-1.16.0-Win_amd64\lib\rad;Library\freetype-windows-binaries-2.12.1\release dll\win64\rad;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <VerInfo_Locale>7177</VerInfo_Locale>
         <BCC_EnableLSPIndexing>true</BCC_EnableLSPIndexing>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.19;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_Build>19</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.20;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>20</VerInfo_Build>
         <BCC_EnableLSPIndexingOnChange>true</BCC_EnableLSPIndexingOnChange>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">

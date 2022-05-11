@@ -11,12 +11,27 @@
 #include "SettingsBase.h"
 #include "TVisualAnalogScale.h"
 #include "LabStreamingLayer.h"
+
+//For font
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#pragma comment (lib, "freetype.lib")
 //---------------------------------------------------------------------------
 class TBaseTask;
 typedef std::shared_ptr<TBaseTask> task_ptr;
 typedef std::shared_ptr<TBitmap> bitmap_ptr;
 typedef std::shared_ptr<SettingsBase> settings_ptr;
 typedef std::shared_ptr<TProtocol> protocol_ptr;
+
+
+struct ftGlyphMetrics
+{
+	int width;
+	int height;
+	int bearingX;
+	int bearingY;
+	int advance;
+};
 
 class TBaseTask
 {
@@ -57,7 +72,8 @@ class TBaseTask
 	void DrawNoise(TBitmap *_bitmap = nullptr);
 	void DrawPoint(int size);
     void DrawPoint(int CenterX, int CenterY, int size, TAlphaColor color);
-    void DrawBitmap(TBitmap *_bitmap);
+	void DrawBitmap(TBitmap *_bitmap);
+    void DrawSymArray(std::vector<std::string> array);
 	void ClearCanva();
 	void ClearCanva(TAlphaColor color);
 
@@ -72,7 +88,12 @@ class TBaseTask
     void StartTask();
 	std::vector<task_ptr> &GetBlocks();
 	void SaveSettings();
-    void LoadSettings();
+	void LoadSettings();
+
+	//For font
+	TTextMetric GetTextMetrics(Fmx::Graphics::TFont* const Font);
+	System::Types::TRect GetBoundingBox(System::Types::TRect textRect, UnicodeString symbol, Fmx::Graphics::TFont* const Font, const Fmx::Types::TTextAlign ATextAlign, const Fmx::Types::TTextAlign AVTextAlign);
+    ftGlyphMetrics GetGlyphMetrics(UnicodeString symbol, Fmx::Graphics::TFont* const Font);
 
 	~TBaseTask();
   protected:
