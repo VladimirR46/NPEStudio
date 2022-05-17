@@ -17,7 +17,7 @@ TLabStreamingLayer::TLabStreamingLayer()
 
 void TLabStreamingLayer::start(samples_t& lsl_samples)
 {
-    lsl::stream_info info("NPES_Samples", "Samples", 1, lsl::IRREGULAR_RATE, lsl::cf_string, "ID1234");
+    lsl::stream_info info("NPES_Samples", "Samples", 1, lsl::IRREGULAR_RATE, lsl::cf_float32, "ID1234");
 
 	lsl::xml_element x_samples = info.desc().append_child("samples");
 	for(int i = 0; i < lsl_samples.size(); i++)
@@ -30,8 +30,18 @@ void TLabStreamingLayer::start(samples_t& lsl_samples)
 
 	init_meta(info.desc());
 
-    /* Run Outlet*/
+    /* Run Outlet */
 	outletSample.reset(new lsl::stream_outlet(info));
+
+	//  Feedback
+
+	lsl::stream_info info2("NPES_Feedback", "Feedback", 1, lsl::IRREGULAR_RATE, lsl::cf_float32, "ID1234");
+	outletFeedback.reset(new lsl::stream_outlet(info2));
+}
+
+void TLabStreamingLayer::SetSubjectInfo(SubjectInfo& subject)
+{
+	_subject = subject;
 }
 
 void TLabStreamingLayer::sendSample(std::string data)
@@ -41,6 +51,27 @@ void TLabStreamingLayer::sendSample(std::string data)
 		outletSample->push_sample(&data);
     }
 }
+
+void TLabStreamingLayer::sendSample(int data)
+{
+   	if(outletSample)
+	{
+		float sample[1];
+		sample[0] = data;
+		outletSample->push_sample(sample);
+    }
+}
+
+void TLabStreamingLayer::sendFeedback(float data)
+{
+	if(outletFeedback)
+	{
+		float sample[1];
+		sample[0] = data;
+		outletFeedback->push_sample(sample);
+    }
+}
+
 
 void TLabStreamingLayer::stop()
 {
@@ -52,11 +83,11 @@ void TLabStreamingLayer::init_meta(lsl::xml_element e)
 {
 	/* Subject*/
 	lsl::xml_element sub = e.append_child("subject");
-	sub.append_child_value("id", "1234")
-		.append_child_value("age","26")
-		.append_child_value("gender", "Male")
-		.append_child_value("handedness", "Right")
-		.append_child_value("Name", "Антипов Владимир Михайлович");
+	sub.append_child_value("id", "0")
+		.append_child_value("age",_subject.Age.c_str())
+		.append_child_value("gender", _subject.Gender.c_str())
+		.append_child_value("handedness", _subject.ActiveHand.c_str())
+		.append_child_value("Name", (_subject.LastName+" "+_subject.Name+" "+_subject.Patronymic).c_str());
 
 	/* Facility*/
 	lsl::xml_element fcy = e.append_child("facility");
@@ -73,8 +104,6 @@ void TLabStreamingLayer::start_rec(AnsiString Path)
 	STARTUPINFO si = { };
 	si.cb = sizeof(STARTUPINFO);
 	si.dwFlags = STARTF_USESTDHANDLES;
-
-	PROCESS_INFORMATION pi = { };
 
 	if(Form3->cbStopLslRec->IsChecked)
 	{
@@ -106,7 +135,7 @@ void TLabStreamingLayer::start_rec(AnsiString Path)
 		if(obj->ClassType() == __classid(TEdit))
 		{
 		  TEdit *edit = static_cast<TEdit*>(obj);
-          lpCommandLine += " 'name=\""+edit->Text+"\"'";
+          lpCommandLine += " name='"+edit->Text+"'";
 		}
 	}
 
@@ -128,8 +157,7 @@ void TLabStreamingLayer::start_rec(AnsiString Path)
 		return;
 	}
 
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
+    isRecord = true;
 
 	if(Form3->cbStopLslRec->IsChecked){
 		// Close pipes we do not need.
@@ -152,9 +180,18 @@ void TLabStreamingLayer::stop_rec()
 		}
         hStdInPipeWrite = NULL;
 	}
+
+	WaitForSingleObject(pi.hProcess,INFINITE);
+
+	//CloseHandle(pi.hProcess);
+	//CloseHandle(pi.hThread);
+	isRecord = false;
 }
 
 TLabStreamingLayer::~TLabStreamingLayer()
 {
-
+	 if(isRecord)
+	 {
+         stop_rec();
+     }
 }

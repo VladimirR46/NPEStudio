@@ -438,7 +438,7 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 		typedef TWorkingMemoryBlock::DProtocol::Trial Trial;
 		TWorkingMemoryBlock::DProtocol* proto_ptr = static_cast<TWorkingMemoryBlock::DProtocol*>(Data[i].get());
 
-        mxArray* timelineName = mat::mCreateStringArray({"Cross", "Numbers", "BlackScreen1", "Stimul", "UserClick", "BlackScreen2"});
+        mxArray* timelineName = mat::mCreateStringArray({"Cross", "Numbers", "BlackScreen1", "Cross2", "Stimul", "UserClick", "BlackScreen2"});
 		mxSetField(block, 0, fieldnames[0], timelineName);
 
 		mxArray* stimulsName = mat::mCreateStringArray({"Numbers","Stimul","Result", "ResponseTimeOut"});
@@ -454,12 +454,12 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 			if(j == 0 ) BlockStartTime = trial->StateTime[TWorkingMemoryBlock::State::PLUS];
             int size = proto_ptr->Trials.size();
 
-			for(int k = 0; k < 6; k++){
+			for(int k = 0; k < 7; k++){
 			  timeline_ptr[size*k+j] = trial->StateTime[k];
 			}
 
 			std::vector<AnsiString> array_lable;
-			for(int k = 0; k < 7; k++){
+			for(int k = 0; k < trial->varray.size(); k++){
 				if(trial->varray[k] == 0) array_lable.push_back("*");
                 else array_lable.push_back(IntToStr(trial->varray[k]));
             }

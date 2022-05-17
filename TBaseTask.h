@@ -4,6 +4,8 @@
 #define TBaseTaskH
 
 #include <fmx.h>
+//#include <System.Classes.hpp>
+//#include <FMX.Controls.hpp>
 #include "math.hpp"
 #include <chrono>
 #include <vector>
@@ -23,6 +25,16 @@ typedef std::shared_ptr<TBitmap> bitmap_ptr;
 typedef std::shared_ptr<SettingsBase> settings_ptr;
 typedef std::shared_ptr<TProtocol> protocol_ptr;
 
+
+struct TDrawObject
+{
+	System::Types::TRect rect;
+	AnsiString text;
+	bool isSelected;
+	TAlphaColor FillColor;
+	float FontSize;
+    float StrokeThickness;
+};
 
 struct ftGlyphMetrics
 {
@@ -48,6 +60,7 @@ class TBaseTask
 	TBaseTask(TBaseTask* _parent, AnsiString _name);
 
 	void Init(AnsiString Path, SubjectInfo _sub);
+    void Close();
 	virtual void InitTask(AnsiString Path)= 0;
     virtual bool isEnable() { return true; }
 	virtual void StateManager() = 0;
@@ -66,7 +79,8 @@ class TBaseTask
 
 	void DrawPlus();
 	void DrawOneNumber(int number);
-	void DrawTable(int numbers[], int size);
+	std::vector<TDrawObject> DrawTable(int numbers[], int size);
+	void HighlightObject(TDrawObject& obj, TAlphaColor color);
 	void DrawText(AnsiString text, int size, int horShift = 0, TAlphaColor color = TAlphaColorRec::White);
 	void DrawSymbols(int array[], int FontSize);
 	void DrawNoise(TBitmap *_bitmap = nullptr);
@@ -89,6 +103,8 @@ class TBaseTask
 	std::vector<task_ptr> &GetBlocks();
 	void SaveSettings();
 	void LoadSettings();
+
+    void HideCursor();
 
 	//For font
 	TTextMetric GetTextMetrics(Fmx::Graphics::TFont* const Font);

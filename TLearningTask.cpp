@@ -475,6 +475,7 @@ void TLearningTask::LoadQuestions()
 //------------------------------------------------------------------------------
 void TLearningTask::InitTask(AnsiString Path)
 {
+    HideCursor();
 	LoadQuestions();
 	ButtonYes->SetPosition(int(Form->Width) / 5, (int(Form->Height) / 4) * 3);
 	ButtonNo->SetPosition((int(Form->Width) / 5)*4,(int(Form->Height) / 4) * 3);

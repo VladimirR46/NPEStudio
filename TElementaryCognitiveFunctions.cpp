@@ -4,6 +4,70 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
+
+/* TDrawHint */
+TDrawHint::TDrawHint(TBitmap *_bitmap) : bitmap(_bitmap)
+{
+	timer = new TTimer(NULL);
+    timer->Enabled = false;
+	timer->OnTimer = TimerEvent;
+}
+
+TDrawHint::~TDrawHint()
+{
+	delete timer;
+}
+
+void __fastcall TDrawHint::TimerEvent(TObject* Sender)
+{
+	Hide();
+	timer->Enabled = false;
+}
+
+void TDrawHint::Draw()
+{
+	rect = System::Types::TRectF(X-sizeX,Y-sizeY,X+sizeX,Y+sizeY);
+
+	bitmap->Canvas->BeginScene();
+	bitmap->Canvas->Stroke->Thickness = 3;
+	bitmap->Canvas->Font->Size = 55;
+	bitmap->Canvas->Stroke->Color = 0xFF252525;//0x17191B;
+	bitmap->Canvas->Fill->Color = 0xFF101010; /*TAlphaColors::Lightgrey*/;
+	bitmap->Canvas->FillRect(rect, 1);
+	bitmap->Canvas->DrawRect(rect, 1);
+	bitmap->Canvas->Fill->Color = TAlphaColors::White;
+	if(isShow) bitmap->Canvas->FillText(rect, text, false, 100, TFillTextFlags(),TTextAlign::Center, TTextAlign::Center);
+	bitmap->Canvas->EndScene();
+}
+
+bool TDrawHint::Contains(int _x, int _y)
+{
+	if(rect.Contains(System::Types::TPoint(_x, _y))) return true;
+	else return false;
+}
+
+void TDrawHint::Hide()
+{
+   isShow = false;
+   Draw();
+}
+
+void TDrawHint::SetPosition(int _x, int _y)
+{
+	X = _x;
+	Y = _y;
+}
+
+void TDrawHint::Show(UnicodeString _text)
+{
+   text = _text;
+   isShow = true;
+   Draw();
+   timer->Enabled = true;
+   timer->Interval = 1500;
+}
+
+/* TElementaryCognitiveFunctions */
 TElementaryCognitiveFunctions::TElementaryCognitiveFunctions(AnsiString _name)
 	: TBaseTask(_name)
 {

@@ -9,6 +9,77 @@
 //---------------------------------------------------------------------------
 typedef unsigned int uint32_t;
 ///////////////////////////////////////////////////////////////////////////////
+class TDrawHint
+{
+public:
+	TDrawHint(TBitmap *_bitmap);
+	~TDrawHint();
+
+	void __fastcall TimerEvent(TObject* Sender);
+	void Draw();
+	bool Contains(int _x, int _y);
+	void Hide();
+	void SetPosition(int _x, int _y);
+	void Show(UnicodeString _text);
+
+private:
+	TBitmap *bitmap;
+    TTimer* timer;
+	System::Types::TRectF rect;
+	UnicodeString text = "";
+    int X = 0, Y = 0;
+	int sizeX = 180, sizeY = 90;
+    bool isShow = false;
+};
+///////////////////////////////////////////////////////////////////////////////
+class TDrawButton
+{
+public:
+	TDrawButton(TBitmap *_bitmap, UnicodeString _text) : bitmap(_bitmap), text(_text)
+	{
+		fill_color = TAlphaColors::Black;
+	}
+
+	void Draw()
+	{
+		rect = System::Types::TRectF(X-sizeX,Y-sizeY,X+sizeX,Y+sizeY);
+		float thick = Thickness/2;
+		System::Types::TRectF fill_rect(rect.left+thick, rect.top+thick, rect.right-thick, rect.bottom-thick);
+
+		bitmap->Canvas->BeginScene();
+		bitmap->Canvas->Stroke->Thickness = Thickness;
+		bitmap->Canvas->Font->Size = 55;
+		bitmap->Canvas->Fill->Color = fill_color;
+		bitmap->Canvas->FillRect(rect, 40, 40, AllCorners, 1, TCornerType::Round);
+		bitmap->Canvas->DrawRect(rect, 40, 40, AllCorners, 1, TCornerType::Round);
+		bitmap->Canvas->Fill->Color = TAlphaColors::White;
+		bitmap->Canvas->FillText(rect, text, false, 100, TFillTextFlags(),TTextAlign::Center, TTextAlign::Center);
+		bitmap->Canvas->EndScene();
+	}
+
+	void SetPosition(int _x, int _y) { X = _x; Y = _y; }
+
+	void SetFillColor(TAlphaColor color)
+	{
+	   fill_color = color;
+    }
+
+	bool Contains(int _x, int _y)
+	{
+		if(rect.Contains(System::Types::TPoint(_x, _y))) return true;
+        else return false;
+    }
+
+private:
+	TBitmap *bitmap;
+	System::Types::TRectF rect;
+	TAlphaColor fill_color;
+	int X = 0, Y = 0;
+	int sizeX = 120, sizeY = 60;
+    int Thickness = 6;
+	UnicodeString text = "";
+};
+///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 class TVisualSearchBlock : public TBaseTask
 {
@@ -73,7 +144,7 @@ public:
 	}
 	//--------------------------------------------------------------------------
 	void InitTask(AnsiString Path) override {
-        state = PLUS;
+        state = INSTRUCTION;
 		TrialCount = 0;
 	}
     //--------------------------------------------------------------------------
@@ -169,14 +240,43 @@ public:
 		{
 			if(old_state == INSTRUCTION){
 				state = PLUS;
+				StateManager();
 			} else {
-				state = BLANK;
+
+                if(select_obj.isSelected)
+				{
+                    select_obj.isSelected = false;
+					HighlightObject(select_obj, TAlphaColors::Black);
+                }
+
+				for(int i = 0; i < table_objects.size(); i++)
+				{
+				   if(table_objects[i].rect.Contains(System::Types::TPoint(X,Y)))
+				   {
+					  select_obj = table_objects[i];
+                      break;
+                   }
+				}
+
+				if(CurrentNumber == select_obj.text.ToInt())
+				{
+				   state = BLANK;
+				   HighlightObject(select_obj, TAlphaColors::Lightgreen);
+				   Timer->Interval = 500;
+				}
+				else
+				{
+				   select_obj.isSelected = true;
+				   HighlightObject(select_obj, TAlphaColors::Lightcoral);
+                   Timer->Interval = 400;
+				}
+
 				#ifdef PROTOCOL_LOGGER
 					Trial->StateTime[CLICK] = millis();
 					Trial->Click = {X, Y, millis(), 0};
 				#endif
             }
-			StateManager();
+
 		}
 	}
     //--------------------------------------------------------------------------
@@ -217,7 +317,7 @@ public:
 				int numbers[25];
 				GetNumberArray(CurrentNumber, numbers, 25, GetTableType());
 				ClearCanva();
-				DrawTable(numbers, 25);
+				table_objects = DrawTable(numbers, 25);
                 //Timer->Interval = Settings->getRandFromRange(RangeTable);
 				state = CLICK;
 				#ifdef PROTOCOL_LOGGER
@@ -234,6 +334,14 @@ public:
 					Trial->StateTime[BLANK] = millis();
 				#endif
 				break;
+            case CLICK:
+				if(select_obj.isSelected)
+				{
+                    select_obj.isSelected = false;
+					HighlightObject(select_obj, TAlphaColors::Black);
+                    Timer->Interval = 0;
+				}
+				break;
 			default:
 				break;
 		}
@@ -244,6 +352,8 @@ private:
 	int TrialCount = 0;
 	int type_count[2];
 	int CurrentNumber;
+	TDrawObject select_obj;
+	std::vector<TDrawObject> table_objects;
 
 	DProtocol* OwnProtocol;
     DProtocol::Trial* Trial;
@@ -261,7 +371,6 @@ public:
 		RangePlus = 3,
 		RangeBackground2 = 4,
 		RangeStimul = 5,
-		RangeStimulWait = 6
 	};
 
 	enum State : int
@@ -270,6 +379,7 @@ public:
 		PLUS,
 		NUMBERS,
 		BLANK,
+        PLUS2,
 		SAMPLE,
 		CLICK,
 		BLANK2,
@@ -315,29 +425,52 @@ public:
 			Settings->Add(RangePlus, "Крест", GuiType::TRange, "1000:1500");
 			Settings->Add(RangeBackground2, "Фон 2", GuiType::TRange, "1000:1500");
 			Settings->Add(RangeStimul, "Стимул", GuiType::TRange, "1000:1500");
-            Settings->Add(RangeStimulWait, "Ожидание реакции", GuiType::TRange, "1000:1500");
 			Settings->Save(_parent->GetTaskName());
 		}
+
+        ButtonYes = new TDrawButton(bitmap.get(), "Да");
+		ButtonNo = new TDrawButton(bitmap.get(), "Нет");
 	}
+
+	~TWorkingMemoryBlock()
+	{
+       delete ButtonYes;
+	   delete ButtonNo;
+	}
+
 	void InitTask(AnsiString Path) override {
 		state = INSTRUCTION;
 		TrialCount = 0;
 		memset(array,0, sizeof(int)*7);
 		memset(complexity_count,0, sizeof(int)*3);
 		memset(samples_count,0, sizeof(int)*2);
+
+        ButtonYes->SetPosition(int(Form->Width) / 5, (int(Form->Height) / 4) * 3);
+		ButtonNo->SetPosition((int(Form->Width) / 5)*4,(int(Form->Height) / 4) * 3);
 	}
+
 	bool Finished() override {
-		if(Settings->getInt(Enable) == 0) return true;
-		if(TrialCount >= Settings->getInt(TrialMax)*3){
+		if(Settings->getInt(Enable) == 0)
+			return true;
+
+		if(TrialCount >= Settings->getInt(TrialMax)*3)
+		{
          InitTask("");
 		 return true;
 		}
-        else return false;
+		else
+			return false;
 	}
+
 	bool isEnable() override {
       return (bool) Settings->getInt(Enable);
 	}
-    void CloseTask() override {}
+
+	void CloseTask() override
+	{
+
+	}
+
 	int calc_complexity()
 	{
 		int complexity_value[3] = {2,4,7};
@@ -360,7 +493,8 @@ public:
 		  }
 	   }
        return 0;
-    }
+	}
+
 	void get_unique_numbers(int array[], int size, int AFrom, int ATo)
 	{
 		int counter = 0;
@@ -374,7 +508,8 @@ public:
 		   }
 		}
 		while(counter < size);
-    }
+	}
+
 	void generate_numbers(int array[])
 	{
 		int complexity = calc_complexity();
@@ -390,6 +525,7 @@ public:
 		delete[] array_places;
 		delete[] array_number;
 	}
+
 	int get_sample_type()
 	{
 		int n1;
@@ -401,6 +537,7 @@ public:
 		samples_count[n1]++;
 		return n1;
 	}
+
 	int get_sample()
 	{
 		int n1 = 0;
@@ -419,7 +556,8 @@ public:
 		}
         Trial->Stimul = n1;
 		return n1;
-    }
+	}
+
 	void StateManager() override
 	{
         old_state = state;
@@ -434,7 +572,8 @@ public:
 				#endif
 				break;
 			case PLUS:
-                ClearCanva();
+
+				ClearCanva();
 				DrawPlus();
 				Timer->Interval = Settings->getRandFromRange(RangePlus);
 				state = NUMBERS;
@@ -460,21 +599,40 @@ public:
 			case BLANK:
 				ClearCanva();
 				Timer->Interval  = Settings->getRandFromRange(RangeBackground);
-				state = SAMPLE;
+				state = PLUS2;
                 #ifdef PROTOCOL_LOGGER
 					Trial->StateTime[BLANK] = millis();
 				#endif
 				break;
+			case PLUS2:
+                ClearCanva();
+				DrawPlus();
+				Timer->Interval = Settings->getRandFromRange(RangePlus);
+				state = SAMPLE;
+                #ifdef PROTOCOL_LOGGER
+					Trial = OwnProtocol->CreateTrial();
+					Trial->StateTime[PLUS2] = millis();
+				#endif
+				break;
 			case SAMPLE:
+			{
+                ClearCanva();
 				DrawOneNumber(get_sample());
-				Timer->Interval = Settings->getRandFromRange(RangeStimulWait);
+
+				ButtonYes->Draw();
+				ButtonNo->Draw();
+
+				Timer->Interval = 0;
 				state = CLICK;
                 #ifdef PROTOCOL_LOGGER
 					Trial->StateTime[SAMPLE] = millis();
 				#endif
 				break;
+            }
 			case BLANK2:
 				ClearCanva();
+				ButtonYes->SetFillColor(TAlphaColors::Black);
+				ButtonNo->SetFillColor(TAlphaColors::Black);
 				Timer->Interval = Settings->getRandFromRange(RangeBackground2);
 				state = PLUS;
 				TrialCount++;
@@ -494,20 +652,38 @@ public:
                 break;
 		}
 	}
+
 	void UserMouseDown(int X, int Y, TMouseButton Button) override {
 		 if(state == CLICK)
 		 {
             if(old_state == INSTRUCTION){
 				state = PLUS;
+				StateManager();
 			} else {
-				state = BLANK2;
+
+				if(ButtonYes->Contains(X,Y))
+				{
+				 ButtonYes->SetFillColor(TAlphaColors::Lightslategray);
+				 ButtonYes->Draw();
+				 state = BLANK2;
+				 Timer->Interval = 500;
+				}
+
+				if(ButtonNo->Contains(X,Y))
+				{
+				 ButtonNo->SetFillColor(TAlphaColors::Lightslategray);
+				 ButtonNo->Draw();
+				 state = BLANK2;
+				 Timer->Interval = 500;
+				}
+
+				/*
 				#ifdef PROTOCOL_LOGGER
 					Trial->StateTime[CLICK] = millis();
 					Trial->Click = {X, Y, millis(), 0};
 				#endif
+				*/
             }
-
-            StateManager();
 		 }
 	}
 private:
@@ -519,7 +695,10 @@ private:
 	int samples_count[2] = {0};
 
 	DProtocol* OwnProtocol;
-    DProtocol::Trial* Trial;
+	DProtocol::Trial* Trial;
+
+	TDrawButton* ButtonYes;
+	TDrawButton* ButtonNo;
 };
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -532,8 +711,6 @@ public:
 		TrialMax = 1,
 		RangeBackground = 2,
 		RangePlus = 3,
-		RangeEquation = 4,
-		RangeAnswerWait = 5
 	};
 	enum State
 	{
@@ -577,18 +754,28 @@ public:
 			Settings->Add(Enable, "Включить", GuiType::TCheckBox , 1);
 			Settings->Add(TrialMax, "Триалы", GuiType::TEdit, 8);
 			Settings->Add(RangePlus, "Крест", GuiType::TRange, "1000:1500");
-			Settings->Add(RangeEquation, "Уравнение", GuiType::TRange, "1000:1500");
 			Settings->Add(RangeBackground, "Фон", GuiType::TRange, "1000:1500");
-			Settings->Add(RangeAnswerWait, "Ожидание реакции", GuiType::TRange, "1000:1500");
 			Settings->Save(_parent->GetTaskName());
 		}
+
+        ButtonYes = new TDrawButton(bitmap.get(), "Да");
+		ButtonNo = new TDrawButton(bitmap.get(), "Нет");
+	}
+
+	~TMentalArithmeticBlock()
+	{
+       delete ButtonYes;
+	   delete ButtonNo;
 	}
 	//--------------------------------------------------------------------------
 	void InitTask(AnsiString Path) override {
 		state = INSTRUCTION;
 		TrialCount = 0;
 		calc_complexity();
-        calc_samples_queue();
+		calc_samples_queue();
+
+        ButtonYes->SetPosition(int(Form->Width) / 5, (int(Form->Height) / 4) * 3);
+		ButtonNo->SetPosition((int(Form->Width) / 5)*4,(int(Form->Height) / 4) * 3);
 	}
 	//--------------------------------------------------------------------------
 	bool Finished() override {
@@ -603,6 +790,7 @@ public:
 	bool isEnable() override {
       return (bool) Settings->getInt(Enable);
 	}
+
 	void CloseTask() override {}
 	//--------------------------------------------------------------------------
 	void calc_complexity()
@@ -622,6 +810,7 @@ public:
 		}
         std::shuffle(samples_queue.begin(), samples_queue.end(), std::random_device());
 	}
+
 	UnicodeString GetEquation()
 	{
 		int X  = RandomRange(10,100);
@@ -637,6 +826,7 @@ public:
 		#endif
         return IntToStr(X)+"-"+IntToStr(N)+"="+IntToStr(R);
 	}
+
 	void StateManager() override
 	{
         old_state = state;
@@ -663,6 +853,8 @@ public:
 			case EQUATION:
 				ClearCanva();
 				DrawText(GetEquation(),220);
+				ButtonYes->Draw();
+				ButtonNo->Draw();
 				state = CLICK;
 				#ifdef PROTOCOL_LOGGER
 					Trial->StateTime[EQUATION] = millis();
@@ -681,22 +873,41 @@ public:
 				break;
 		}
 	}
+
 	void UserMouseDown(int X, int Y, TMouseButton Button) override {
 		 if(state == CLICK)
 		 {
 			if(old_state == INSTRUCTION){
 				state = PLUS;
 			} else {
-				state = BLANK;
+
+				if(ButtonYes->Contains(X,Y))
+				{
+				 ButtonYes->SetFillColor(TAlphaColors::Lightslategray);
+				 ButtonYes->Draw();
+				 state = BLANK;
+				 Timer->Interval = 500;
+				}
+
+				if(ButtonNo->Contains(X,Y))
+				{
+				 ButtonNo->SetFillColor(TAlphaColors::Lightslategray);
+				 ButtonNo->Draw();
+				 state = BLANK;
+				 Timer->Interval = 500;
+				}
+				/*
 				#ifdef PROTOCOL_LOGGER
 					Trial->StateTime[CLICK] = millis();
 					Trial->Click = {X, Y, millis(), 0};
 				#endif
+                */
             }
 
 			StateManager();
 		 }
 	}
+
 private:
 	State state;
     State old_state;
@@ -704,7 +915,10 @@ private:
 	std::vector<int> complexity;
 	std::vector<int> samples_queue;
 	DProtocol* OwnProtocol;
-    DProtocol::Trial* Trial;
+	DProtocol::Trial* Trial;
+
+	TDrawButton* ButtonYes;
+	TDrawButton* ButtonNo;
 };
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -763,7 +977,14 @@ public:
 			Settings->Add(RangeAnswerWait, "Ожидание реакции", GuiType::TRange, "1000:1500");
 			Settings->Save(_parent->GetTaskName());
 		}
+
+		hint = new TDrawHint(bitmap.get());
 	}
+	//--------------------------------------------------------------------------
+	~TFunctionCombination()
+	{
+       delete hint;
+    }
     //--------------------------------------------------------------------------
 	void InitTask(AnsiString Path) override {
 		state = INSTRUCTION;
@@ -776,6 +997,9 @@ public:
 			std::random_shuffle(begin(_complexity), end(_complexity));
 			complexity.insert(end(complexity), begin(_complexity), end(_complexity));
 		}
+
+		//int(Form->Width) / 5, (int(Form->Height) / 4) * 3
+		hint->SetPosition(Form->Width - 200,Form->Height - 100);
 	}
 	//--------------------------------------------------------------------------
 	bool Finished() override {
@@ -811,7 +1035,9 @@ public:
 			case INSTRUCTION:
 				ClearCanva();
 				get_array();
-				DrawText("Максимальное число: "+IntToStr(Number)+", Число N: "+IntToStr(complexity[complexity_index]), 80);
+				complN = complexity[complexity_index];
+				TargetNumber = Number;
+				DrawText("Максимальное число: "+IntToStr(Number)+", Число N: "+IntToStr(complN), 80);
 				Timer->Interval = 0;
 				state = CLICK;
 				#ifdef PROTOCOL_LOGGER
@@ -831,9 +1057,11 @@ public:
 				break;
 			case MATRIX:
 				ClearCanva();
-                srand(time(NULL));
+				hint->Draw();
+				select_obj.isSelected = false;
+				srand(time(NULL));
 				std::random_shuffle(begin(array), end(array));
-				DrawTable(array.data(),array.size());
+				table_objects = DrawTable(array.data(),array.size());
 				Timer->Interval = 0;
 				state = CLICK;
 				TrialCount++;
@@ -842,6 +1070,14 @@ public:
 					Trial->varray = array;
 					Trial->StateTime[MATRIX] = millis();
 				#endif
+				break;
+			case CLICK:
+                if(select_obj.isSelected)
+				{
+                    select_obj.isSelected = false;
+					HighlightObject(select_obj, TAlphaColors::Black);
+                    Timer->Interval = 0;
+				}
 				break;
 			default:
 				break;
@@ -853,13 +1089,48 @@ public:
 		 {
 			if(TrialCount == 0) {
 			 state = PLUS;
+			 if(Parent) Parent->StateManager();
 			}
 			else {
-			  Trial->StateTime[CLICK] = millis();
-              Trial->Click = {X, Y, millis(), 0};
-			  state = MATRIX;
+
+				if(select_obj.isSelected)
+				{
+                    select_obj.isSelected = false;
+					HighlightObject(select_obj, TAlphaColors::Black);
+				}
+
+				for(int i = 0; i < table_objects.size(); i++)
+				{
+				   if(table_objects[i].rect.Contains(System::Types::TPoint(X,Y)))
+				   {
+					  select_obj = table_objects[i];
+					  if(TargetNumber == select_obj.text.ToInt())
+					  {
+						state = MATRIX;
+						HighlightObject(select_obj, TAlphaColors::Lightgreen);
+						TargetNumber -= complN;
+						hint->Hide();
+						Timer->Interval = 500;
+					  }
+					  else
+					  {
+						select_obj.isSelected = true;
+						HighlightObject(select_obj, TAlphaColors::Lightcoral);
+						Timer->Interval = 400;
+					  }
+					  break;
+				   }
+				}
+
+				if(hint->Contains(X,Y))
+				{
+					hint->Show("Ищем "+IntToStr(TargetNumber)+"\n Отнимаем "+IntToStr(complN));
+                }
+
+				//Trial->StateTime[CLICK] = millis();
+				//Trial->Click = {X, Y, millis(), 0};
+
             }
-			if(Parent) Parent->StateManager();
 		 }
 	}
 private:
@@ -868,9 +1139,16 @@ private:
 	int complexity_index = 0;
 	std::vector<int> complexity;
 	int Number = 0;
+	int complN = 0;
+    int TargetNumber = 0;
 	std::vector<int> array;
 	DProtocol::Trial* Trial;
-    DProtocol *OwnProtocol;
+	DProtocol *OwnProtocol;
+
+    TDrawObject select_obj;
+	std::vector<TDrawObject> table_objects;
+
+    TDrawHint* hint;
 };
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////Элементарные когнитивные функции////////////////

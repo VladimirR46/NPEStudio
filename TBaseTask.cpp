@@ -4,6 +4,8 @@
 
 #include <FMX.FontGlyphs.Win.hpp>
 #include <FMX.Helpers.Win.hpp>
+#include <math.h>
+#include "DrawWin.h"
 
 TCanvas* TBaseTask::Canvas;
 TTimer* TBaseTask::Timer;
@@ -11,6 +13,7 @@ TForm* TBaseTask::Form;
 TVisualAnalogScale* TBaseTask::VAS;
 lsl_ptr TBaseTask::lsl;
 #pragma package(smart_init)
+
 //---------------------------------------------------------------------------
 TBaseTask::TBaseTask(AnsiString _name) : TaskName(_name)
 {
@@ -37,6 +40,8 @@ void TBaseTask::Init(AnsiString Path, SubjectInfo _sub)
 
     VAS->OnFinished = VasFinished;
 
+	lsl->SetSubjectInfo(_sub);
+
 	if(!Parent)	Protocol->Init(Path, _sub);
 	InitTask(Path);
 	for(int i = 0; i < Blocks.size(); i++){
@@ -44,9 +49,23 @@ void TBaseTask::Init(AnsiString Path, SubjectInfo _sub)
 	}
 }
 //--------------------------------------------------------------------------
+void TBaseTask::Close()
+{
+	CloseTask();
+	for(int i = 0; i < Blocks.size(); i++){
+		Blocks[i]->CloseTask();
+	}
+}
+//--------------------------------------------------------------------------
 void  TBaseTask::StartTask()
 {
       StateManager();
+}
+//--------------------------------------------------------------------------
+void TBaseTask::HideCursor()
+{
+	TForm2 *form_ptr = static_cast<TForm2*>(Form);
+	form_ptr->PaintBox1->Cursor = crNone;
 }
 //--------------------------------------------------------------------------
 void TBaseTask::DrawPlus()
@@ -140,8 +159,9 @@ void TBaseTask::DrawText(AnsiString text, int size, int horShift, TAlphaColor co
 	bitmap->Canvas->EndScene();
 }
 //--------------------------------------------------------------------------
-void TBaseTask::DrawTable(int numbers[], int size)
+std::vector<TDrawObject> TBaseTask::DrawTable(int numbers[], int size)
 {
+	std::vector<TDrawObject> objects;
 	int RectSize = Form->Height * 0.8 / 5;
 	int x = Form->Width / 2 - 2.5 * RectSize;
 	int y = Form->Height / 2 - 2.5 * RectSize;
@@ -149,19 +169,46 @@ void TBaseTask::DrawTable(int numbers[], int size)
 	bitmap->Canvas->BeginScene();
 	bitmap->Canvas->Font->Size = FontSize;
 	bitmap->Canvas->Stroke->Thickness = 8;
+	bitmap->Canvas->Stroke->Color = TAlphaColors::White;
+	bitmap->Canvas->Fill->Color = TAlphaColors::White;
 	for (int i = 0; i < sqrt(float(size)); i++) {
 		for (int j = 0; j < sqrt(float(size)); j++) {
 			int x_begin = i * RectSize + x;
 			int y_begin = j * RectSize + y;
 			int x_end = i * RectSize + RectSize + x;
 			int y_end = j * RectSize + RectSize + y;
-			bitmap->Canvas->DrawRect(TRectF(x_begin, y_begin, x_end, y_end),
+			System::Types::TRect rect(x_begin, y_begin, x_end, y_end);
+
+			bitmap->Canvas->DrawRect(rect,
 				0, 0, AllCorners, 100);
-			bitmap->Canvas->FillText(TRectF(x_begin, y_begin, x_end, y_end),
+			bitmap->Canvas->FillText(rect,
 				IntToStr(numbers[5 * i + j]), false, 100, TFillTextFlags(),
 				TTextAlign::Center, TTextAlign::Center);
+
+			TDrawObject obj;
+			obj.rect = rect;
+			obj.text = IntToStr(numbers[5 * i + j]);
+			obj.FontSize = bitmap->Canvas->Font->Size;
+			obj.FillColor = bitmap->Canvas->Fill->Color;
+			obj.StrokeThickness = bitmap->Canvas->Stroke->Thickness;
+			objects.push_back(obj);
 		}
 	}
+	bitmap->Canvas->EndScene();
+    return objects;
+}
+//--------------------------------------------------------------------------
+void TBaseTask::HighlightObject(TDrawObject& obj, TAlphaColor color)
+{
+	bitmap->Canvas->BeginScene();
+	bitmap->Canvas->Font->Size = obj.FontSize;
+	bitmap->Canvas->Fill->Color = color;
+	int shift = 4;
+	System::Types::TRect rect(obj.rect.left+shift, obj.rect.top+shift,obj.rect.right-shift, obj.rect.bottom-shift);
+	bitmap->Canvas->FillRect(rect,1);
+
+	bitmap->Canvas->Fill->Color = obj.FillColor;
+	bitmap->Canvas->FillText(obj.rect, obj.text, false, 100, TFillTextFlags(), TTextAlign::Center, TTextAlign::Center);
 	bitmap->Canvas->EndScene();
 }
 //--------------------------------------------------------------------------
@@ -200,19 +247,24 @@ void TBaseTask::DrawSymArray(std::vector<std::string> array)
    bitmap->Canvas->Fill->Color = claWhite;
 
    int row = 2;
-   int col = 4;
    int RectSize = Form->Height * 0.6 / row;
    int FontSize = RectSize * 0.6;
-   int x = Form->Width / 2 - col/2 * RectSize;
-   int y = Form->Height / 2 - row/2 * RectSize;
+
    bitmap->Canvas->Font->Size = FontSize;
    bitmap->Canvas->Font->Family = "Arial";
 
 	System::Types::TRect rect;
     int idx = 0;
     bitmap->Canvas->BeginScene();
-	for (int i = 0; i < row; i++) {
-		for (int j = 0; j < col; j++) {
+	for (int i = 0; i < row; i++)
+	{
+		int col = (array.size() / row) + i*(array.size() % row);
+
+		for (int j = 0; j < col; j++)
+		{
+			int x = Form->Width / 2 - col/2.0 * RectSize;
+			int y = Form->Height / 2 - row/2.0 * RectSize;
+
 			int x_begin = j * RectSize + x;
 			int y_begin = i * RectSize + y;
 			int x_end = j * RectSize + RectSize + x;
@@ -220,13 +272,13 @@ void TBaseTask::DrawSymArray(std::vector<std::string> array)
 			rect = System::Types::TRect(x_begin, y_begin, x_end, y_end);
             bitmap->Canvas->Stroke->Thickness = 1;
 			bitmap->Canvas->Stroke->Color = TAlphaColors::White;
-			bitmap->Canvas->DrawRect(rect, 0, 0, AllCorners, 1);
+			//bitmap->Canvas->DrawRect(rect, 0, 0, AllCorners, 1);
 			bitmap->Canvas->FillText(rect, array[idx++].c_str(), false, 1, TFillTextFlags(), TTextAlign::Center, TTextAlign::Center);
 
 			System::Types::TRect bbox = GetBoundingBox(rect, UnicodeString(array[idx-1].c_str()), bitmap->Canvas->Font,TTextAlign::Center, TTextAlign::Center);
 			bitmap->Canvas->Stroke->Thickness = 2;
 			bitmap->Canvas->Stroke->Color = TAlphaColors::Red;
-			bitmap->Canvas->DrawRect(bbox, 0, 0, AllCorners, 100);
+			//bitmap->Canvas->DrawRect(bbox, 0, 0, AllCorners, 100);
 
 		}
 	}
@@ -391,7 +443,7 @@ ftGlyphMetrics TBaseTask::GetGlyphMetrics(UnicodeString symbol, Fmx::Graphics::T
 //-------------------------------------------------------------------------
 System::Types::TRect TBaseTask::GetBoundingBox(System::Types::TRect textRect, UnicodeString symbol, Fmx::Graphics::TFont* const Font, const Fmx::Types::TTextAlign ATextAlign, const Fmx::Types::TTextAlign AVTextAlign)
 {
-   TRect rect;
+   System::Types::TRect rect;
    int x_offset = 0;
    int y_offset = 0;
    TTextMetric tMetric = GetTextMetrics(Font);

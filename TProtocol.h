@@ -130,6 +130,7 @@ struct SubjectInfo
    AnsiString ActiveHand;
    AnsiString Age;
 };
+
 struct ClickInfo
 {
 	int X;

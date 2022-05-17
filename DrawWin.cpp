@@ -94,8 +94,6 @@ void __fastcall TForm2::FormCreate(TObject* Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormShow(TObject* Sender)
 {
-    Form2->PaintBox1->Cursor = crNone;
-
 	Label1->Visible = Form3->CheckBox1->IsChecked;
     Label2->Visible = Form3->CheckBox2->IsChecked;
     //---------------------------------
@@ -132,7 +130,7 @@ void __fastcall TForm2::FormShow(TObject* Sender)
 void __fastcall TForm2::Timer1Timer(TObject* Sender)
 {
     if (Tasks[CurrentTask]->Finished()) {
-        Tasks[CurrentTask]->CloseTask();
+        Tasks[CurrentTask]->Close();
 		Timer1->Enabled = false;
         Close();
     } else {
@@ -210,7 +208,7 @@ void __fastcall TForm2::PaintBox1Paint(TObject *Sender, TCanvas *Canvas)
 //---------------------------------------------------------------------------
 void __fastcall TForm2::FormClose(TObject *Sender, TCloseAction &Action)
 {
-	Tasks[CurrentTask]->CloseTask();
+	Tasks[CurrentTask]->Close();
 	Form1->btnStart->ImageIndex = 0;
 
     if(Form1->triggerbox->Connected()) Form1->triggerbox->SendData(0xFF);

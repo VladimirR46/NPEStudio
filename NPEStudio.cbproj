@@ -192,8 +192,8 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DynamicRTL>false</DynamicRTL>
         <UsePackages>false</UsePackages>
-        <IncludePath>Library\Matlab\Win64\Matlab2020b\extern\include;Library\actiCHamp;$(IncludePath)</IncludePath>
-        <ILINK_LibraryPath>Library\Matlab\Win64\Matlab2020b\extern\lib\win64\borland;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <IncludePath>Library\Matlab\Win64\Matlab2020b\extern\include;Library\actiCHamp;Library\freetype-windows-binaries-2.12.1\include;Library\liblsl-1.16.0-Win_amd64\include;$(IncludePath)</IncludePath>
+        <ILINK_LibraryPath>Library\Matlab\Win64\Matlab2020b\extern\lib\win64\borland;Library\freetype-windows-binaries-2.12.1\release dll\win64\rad;Library\liblsl-1.16.0-Win_amd64\lib\rad;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <LinkPackageStatics>rtl.lib;fmx.lib;vcl.lib;FMXTee.lib</LinkPackageStatics>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <BCC_EnableLSPIndexing>true</BCC_EnableLSPIndexing>
