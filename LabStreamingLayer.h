@@ -26,7 +26,9 @@ class TLabStreamingLayer;
 	 void init_meta(lsl::xml_element e);
 	 void sendSample(std::string data);
 	 void sendSample(int data);
-     void sendFeedback(float data);
+	 void sendFeedback(float data);
+
+     double get_clock();
 
 	 // Lab recorder cli
 	 void start_rec(AnsiString Path);

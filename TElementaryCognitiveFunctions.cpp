@@ -45,11 +45,16 @@ bool TDrawHint::Contains(int _x, int _y)
 	if(rect.Contains(System::Types::TPoint(_x, _y))) return true;
 	else return false;
 }
+bool TDrawHint::Visible()
+{
+     return isShow;
+}
 
 void TDrawHint::Hide()
 {
    isShow = false;
    Draw();
+   timer->Enabled = false;
 }
 
 void TDrawHint::SetPosition(int _x, int _y)
@@ -64,7 +69,7 @@ void TDrawHint::Show(UnicodeString _text)
    isShow = true;
    Draw();
    timer->Enabled = true;
-   timer->Interval = 1500;
+   timer->Interval = 2000;
 }
 
 /* TElementaryCognitiveFunctions */
@@ -73,7 +78,7 @@ TElementaryCognitiveFunctions::TElementaryCognitiveFunctions(AnsiString _name)
 {
 	cur_block = 0;
 	if(!Settings->Load(_name)){
-		Settings->Add(PartsCount, "Частей", GuiType::TEdit, "3");
+		Settings->Add(PartsCount, "Частей (максимум 3)", GuiType::TEdit, "3");
 		Settings->Add(RangeBackground, "Фон", GuiType::TEdit, "1000");
 		Settings->Add(RangeBreak, "Перерыв", GuiType::TEdit, "2500");
 		Settings->Save(_name);
@@ -82,6 +87,9 @@ TElementaryCognitiveFunctions::TElementaryCognitiveFunctions(AnsiString _name)
 //------------------------------------------------------------------------------
 void TElementaryCognitiveFunctions::InitTask(AnsiString Path)
 {
+       randomize();
+	   std::srand(time(NULL));
+
 	   state = BACKGROUND;
 	   PartCount = 0;
        cur_block = 0;
@@ -96,7 +104,7 @@ void TElementaryCognitiveFunctions::InitTask(AnsiString Path)
                }
             }
 		}
-	   srand(time(NULL));
+
 	   for(int i = 0; i < Settings->getInt(PartsCount); i++) {
 		std::random_shuffle(sequence.begin(), sequence.end());
 		BlockSequence.push_back(sequence);
@@ -109,9 +117,11 @@ void TElementaryCognitiveFunctions::StateManager()
 		{
 			ClearCanva();
 			DrawText("Запись фоновой активности.", 80);
-			state = RUN_BLOCK;
 			Timer->Interval = Settings->getInt(RangeBackground);  // 60000
-            Timer->Enabled = true;
+			Timer->Enabled = true;
+
+            if(PartCount == Settings->getInt(PartsCount)){ state = END; break; }
+			else state = RUN_BLOCK;
 			#ifdef PROTOCOL_LOGGER
 				Protocol->NextBlock(CreateProtocol());
 				OwnProtocol->BACKGROUND_TIME = millis();
@@ -140,14 +150,32 @@ void TElementaryCognitiveFunctions::StateManager()
 		}
 		case PAUSE:
 		{
+			PartCount++;
+
+			if(PartCount == Settings->getInt(PartsCount))
+			{
+			   state = BACKGROUND;
+			   StateManager();
+			   break;
+            }
+
+
 			ClearCanva();
 			Timer->Interval = Settings->get(RangeBreak).ToInt();
 			DrawText("Перерыв", 80);
-            state = BACKGROUND;
-			PartCount++;
+			state = BACKGROUND;
+
 			#ifdef PROTOCOL_LOGGER
                 OwnProtocol->PAUSE_TIME = millis();
 			#endif
+			break;
+		}
+		case END:
+		{
+			ClearCanva();
+			DrawText("Спасибо за участие!", 80);
+			state = FINISHED;
+			Timer->Interval = 2000;
 			break;
 		}
 		default:
@@ -156,7 +184,7 @@ void TElementaryCognitiveFunctions::StateManager()
 }
 bool TElementaryCognitiveFunctions::Finished()
 {
-    if(PartCount == Settings->getInt(PartsCount)) return true;
+	if(state == State::FINISHED){ return true; Timer->Enabled = false; }
 	return false;
 }
 void TElementaryCognitiveFunctions::UserMouseDown(int X, int Y, TMouseButton Button)

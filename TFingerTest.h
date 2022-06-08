@@ -25,16 +25,18 @@ public:
 	   PathToImage,
        TrialMax,
 	   RangeNoise,
-	   RangeImage
+	   RangeImage,
+	   BACKGROUND1,
+       BACKGROUND2
     };
 
 	enum State : int
 	{
-       INSTRUCTION = -1,
+	   BEGIN = -1,
 	   NOISE,
 	   IMAGE,
        Size,
-       CONCLUSION
+       END
 	} state;
 
 	struct ProtocolBlock : ProtocolBase

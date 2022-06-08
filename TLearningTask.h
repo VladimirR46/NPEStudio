@@ -228,6 +228,6 @@ private:
 	int QVASInterval = 0;
 	int TVASInterval = 0;
 
-    int BLOCK_SIZE = 60;
+	int BLOCK_SIZE = 60;
 };
 #endif

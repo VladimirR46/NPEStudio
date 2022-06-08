@@ -21,6 +21,7 @@ public:
 	void Hide();
 	void SetPosition(int _x, int _y);
 	void Show(UnicodeString _text);
+    bool Visible();
 
 private:
 	TBitmap *bitmap;
@@ -48,7 +49,7 @@ public:
 
 		bitmap->Canvas->BeginScene();
 		bitmap->Canvas->Stroke->Thickness = Thickness;
-		bitmap->Canvas->Font->Size = 55;
+		bitmap->Canvas->Font->Size = 50;
 		bitmap->Canvas->Fill->Color = fill_color;
 		bitmap->Canvas->FillRect(rect, 40, 40, AllCorners, 1, TCornerType::Round);
 		bitmap->Canvas->DrawRect(rect, 40, 40, AllCorners, 1, TCornerType::Round);
@@ -75,7 +76,7 @@ private:
 	System::Types::TRectF rect;
 	TAlphaColor fill_color;
 	int X = 0, Y = 0;
-	int sizeX = 120, sizeY = 60;
+	int sizeX = 150, sizeY = 60;
     int Thickness = 6;
 	UnicodeString text = "";
 };
@@ -105,6 +106,13 @@ public:
         Size
 	};
 
+	struct Sample
+	{
+		int number;
+		std::vector<int> numbers;
+        int table_type;
+	};
+
 	TVisualSearchBlock(TBaseTask* _parent, AnsiString _name) : TBaseTask(_parent, _name)
 	{
 		if(!Settings->Load(_parent->GetTaskName())){
@@ -115,6 +123,8 @@ public:
 			Settings->Add(RangePlus, "Крест", GuiType::TRange, "1000:1500");
 			Settings->Save(_parent->GetTaskName());
 		}
+
+        ButtonSkip = new TDrawButton(bitmap.get(), "Пропустить");
 	}
     // Описание для протокола --------------------------------------------------
 	struct DProtocol : ProtocolBase
@@ -124,6 +134,7 @@ public:
 			unsigned int StateTime[State::Size] = {0};
 			ClickInfo Click;
 			int number;
+            int user_choice;
             std::vector<int> array;
 		};
 		std::vector<std::shared_ptr<Trial>> Trials;
@@ -143,14 +154,49 @@ public:
 		return protocol;
 	}
 	//--------------------------------------------------------------------------
+    std::vector<int> gen_sequence(int size, int max_number)
+	{
+		std::vector<int> ret(size);
+		for(int i = 0; i < size; i++)
+			ret[i] = i % max_number;
+		return ret;
+	}
+	//--------------------------------------------------------------------------
 	void InitTask(AnsiString Path) override {
-        state = INSTRUCTION;
+		randomize();
+		std::srand(time(NULL));
+
+		state = INSTRUCTION;
 		TrialCount = 0;
+
+		ButtonSkip->SetPosition(Form->Width - 170, Form->Height - 70);
+
+		int trials_count = Settings->getInt(TrialMax)*2;
+
+		std::vector<int> table_types = gen_sequence(trials_count,2);
+		std::random_shuffle(table_types.begin(), table_types.end());
+
+		_samples.clear();
+		_samples.resize(trials_count);
+		for(int i = 0; i < trials_count; i++)
+		{
+			 _samples[i] = GenerateSample(GetRandomNumber(), table_types[i]);
+        }
 	}
     //--------------------------------------------------------------------------
+	Sample GenerateSample(int number, int table_type)
+	{
+		 Sample sample;
+		 sample.number = number;
+		 sample.table_type = table_type;
+		 sample.numbers = GetNumberArray(number, table_type);
+		 return sample;
+    }
+	//--------------------------------------------------------------------------
 	bool Finished() override {
 		if(Settings->get(Enable).ToInt() == 0) return true;
-		if(TrialCount >= Settings->getInt(TrialMax)*2){
+		if(TrialCount >= _samples.size())
+		{
          InitTask("");
 		 return true;
 		}
@@ -162,56 +208,35 @@ public:
 	}
     void CloseTask() override {}
 	//--------------------------------------------------------------------------
-	void GetRandomNumber()
+	int GetRandomNumber()
 	{
 		int number  = RandomRange(10,100);
 		while(int(number/10) == int(number%10))
 			number  = RandomRange(10,100);
-		CurrentNumber = number;
-		Trial->number = CurrentNumber;
+		return number;
 	}
 	//--------------------------------------------------------------------------
-	int GetTableType()
+	std::vector<int> GetNumberArray(int number, int table_type)
 	{
-		int TableType = RandomRange(0,2);
-		if(type_count[TableType] < Settings->getInt(TrialMax))
+		std::vector<int> array(25,0);
+		for(int i = 0; i < array.size(); )
 		{
-		  type_count[TableType]++;
-		  return TableType;
+			int n = (table_type == 0) ? GetNumberType1(number) : GetNumberType2(number);
+			if(std::find(array.begin(), array.end(), n) == array.end() && n != number)
+			{
+				array[i] = n;
+				i++;
+			}
 		}
-		TableType = int((bool)!TableType);
-        type_count[TableType]++;
-		return TableType;
-    }
-	//--------------------------------------------------------------------------
-	void GetNumberArray(int number, int array[], int size, int TableType)
-	{
-		int n = 0;
-		int index = 0;
-		while(index < size)
-		{
-		   if(TableType == 0) n = GetNumberType1(number);
-		   if(TableType == 1) n = GetNumberType2(number);
-		   bool isNext = true;
-		   for(int j = 0; j < index; j++)
-		   {
-			   if(n == array[j] || n == number)
-			   {
-				  isNext = false;
-				  break;
-			   }
-		   }
-		   if(isNext) array[index++] = n;
-		}
-		array[RandomRange(0,size)] = number;
+		array[rand() % array.size()] = number;
+		return array;
 	}
 	//--------------------------------------------------------------------------
 	int GetNumberType1(int number)
 	{
        int n1 = 0;
-	   int digit[2];
-	   digit[0] = number / 10;
-	   digit[1] = number % 10;
+	   int digit[2] = {number / 10, number % 10};
+
 	   do
 	   {
 		n1 = RandomRange(10,100);
@@ -223,9 +248,8 @@ public:
 	int GetNumberType2(int number)
 	{
        int n1 = 0;
-	   int digit[2];
-	   digit[0] = number / 10;
-	   digit[1] = number % 10;
+	   int digit[2] = {number / 10, number % 10};
+
 	   do
 	   {
 		n1 = RandomRange(10,100);
@@ -238,37 +262,40 @@ public:
 	{
 		if(state == CLICK)
 		{
-			if(old_state == INSTRUCTION){
+			if(old_state == INSTRUCTION)
+			{
 				state = PLUS;
 				StateManager();
-			} else {
-
-                if(select_obj.isSelected)
-				{
-                    select_obj.isSelected = false;
-					HighlightObject(select_obj, TAlphaColors::Black);
-                }
-
+			}
+			else
+			{
 				for(int i = 0; i < table_objects.size(); i++)
 				{
 				   if(table_objects[i].rect.Contains(System::Types::TPoint(X,Y)))
 				   {
 					  select_obj = table_objects[i];
-                      break;
+
+					  Trial->user_choice = select_obj.text.ToInt();
+
+					  state = BLANK;
+					  HighlightObject(select_obj, TAlphaColors::Lightslategray);
+					  if(_samples[TrialCount].number != select_obj.text.ToInt())
+					  {
+						 _samples.push_back(GenerateSample(GetRandomNumber(), _samples[TrialCount].table_type));
+					  }
+
+					  Timer->Interval = 400;
+					  break;
                    }
 				}
 
-				if(CurrentNumber == select_obj.text.ToInt())
+				if(ButtonSkip->Contains(X,Y))
 				{
-				   state = BLANK;
-				   HighlightObject(select_obj, TAlphaColors::Lightgreen);
-				   Timer->Interval = 500;
-				}
-				else
-				{
-				   select_obj.isSelected = true;
-				   HighlightObject(select_obj, TAlphaColors::Lightcoral);
-                   Timer->Interval = 400;
+				 _samples.push_back(GenerateSample(GetRandomNumber(), _samples[TrialCount].table_type));
+				 ButtonSkip->SetFillColor(TAlphaColors::Lightslategray);
+				 ButtonSkip->Draw();
+				 state = BLANK;
+				 Timer->Interval = 500;
 				}
 
 				#ifdef PROTOCOL_LOGGER
@@ -305,28 +332,28 @@ public:
 				break;
 			case NUMBER:
 				ClearCanva();
-				GetRandomNumber();
-				DrawOneNumber(CurrentNumber);
+				DrawOneNumber(_samples[TrialCount].number);
 				Timer->Interval = Settings->getRandFromRange(RangeNumber);
 				state = TABLE;
                 #ifdef PROTOCOL_LOGGER
+                    Trial->number = _samples[TrialCount].number;
 					Trial->StateTime[NUMBER] = millis();
 				#endif
 				break;
 			case TABLE:
-				int numbers[25];
-				GetNumberArray(CurrentNumber, numbers, 25, GetTableType());
 				ClearCanva();
-				table_objects = DrawTable(numbers, 25);
+                ButtonSkip->Draw();
+				table_objects = DrawTable(_samples[TrialCount].numbers.data(), _samples[TrialCount].numbers.size());
                 //Timer->Interval = Settings->getRandFromRange(RangeTable);
 				state = CLICK;
 				#ifdef PROTOCOL_LOGGER
 					Trial->StateTime[TABLE] = millis();
-                    Trial->array.assign(numbers,numbers+25);
+                    Trial->array = _samples[TrialCount].numbers;
 				#endif
 				break;
 			case BLANK:
 				ClearCanva();
+                ButtonSkip->SetFillColor(TAlphaColors::Black);
 				Timer->Interval = Settings->getRandFromRange(RangeBackground);
 				state = PLUS;
 				TrialCount++;
@@ -335,12 +362,6 @@ public:
 				#endif
 				break;
             case CLICK:
-				if(select_obj.isSelected)
-				{
-                    select_obj.isSelected = false;
-					HighlightObject(select_obj, TAlphaColors::Black);
-                    Timer->Interval = 0;
-				}
 				break;
 			default:
 				break;
@@ -350,13 +371,15 @@ private:
 	State state;
     State old_state;
 	int TrialCount = 0;
-	int type_count[2];
-	int CurrentNumber;
 	TDrawObject select_obj;
 	std::vector<TDrawObject> table_objects;
 
+    std::vector<Sample> _samples;
+
 	DProtocol* OwnProtocol;
-    DProtocol::Trial* Trial;
+	DProtocol::Trial* Trial;
+
+    TDrawButton* ButtonSkip;
 };
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -365,12 +388,14 @@ class TWorkingMemoryBlock : public TBaseTask
 public:
 	enum SettingsName : int
 	{
-		Enable = 0,
-		TrialMax = 1,
-		RangeBackground = 2,
-		RangePlus = 3,
-		RangeBackground2 = 4,
-		RangeStimul = 5,
+		Enable,
+		MaxTrialPerCmplexity,
+		MaxSymbolCount,
+		Complexity,
+		RangeBackground,
+		RangePlus,
+		RangeBackground2,
+		RangeStimul,
 	};
 
 	enum State : int
@@ -386,6 +411,14 @@ public:
         Size
 	};
 
+	struct Sample
+	{
+	   std::vector<int> numbers;
+	   int number;
+	   int targeted; // проба
+	   int complexity;
+	};
+
 	// Описание для протокола --------------------------------------------------
 	struct DProtocol : ProtocolBase
 	{
@@ -395,6 +428,7 @@ public:
 			ClickInfo Click;
 			int ResponseTimeOut = 0;
 			int Stimul = 0;
+            int user_choice = -1;
             std::vector<int> varray;
 		};
 		std::vector<std::shared_ptr<Trial>> Trials;
@@ -420,7 +454,11 @@ public:
 	{
 		if(!Settings->Load(_parent->GetTaskName())){
 			Settings->Add(Enable, "Включить", GuiType::TCheckBox , 1);
-			Settings->Add(TrialMax, "Триалы", GuiType::TEdit, 8);
+
+			Settings->Add(MaxTrialPerCmplexity, "Триалов на сложность и пробы", GuiType::TEdit, "1");
+			Settings->Add(MaxSymbolCount, "Кол. символов", GuiType::TEdit, "7");
+			Settings->Add(Complexity, "Уровни сложности", GuiType::TEdit, "2,3,4,5,6,7");
+
 			Settings->Add(RangeBackground, "Фон 1", GuiType::TRange, "1000:1500");
 			Settings->Add(RangePlus, "Крест", GuiType::TRange, "1000:1500");
 			Settings->Add(RangeBackground2, "Фон 2", GuiType::TRange, "1000:1500");
@@ -437,23 +475,71 @@ public:
        delete ButtonYes;
 	   delete ButtonNo;
 	}
-
+	//--------------------------------------------------------------------------
+	std::vector<int> str_to_vecint(const char* str, std::string delim)
+	{
+		TStringDynArray data = SplitString(str,delim.c_str());
+		std::vector<int> vec(data.size());
+		for(int i = 0; i < data.size(); i++) vec[i] = data[i].ToInt();
+		return vec;
+	}
+	//--------------------------------------------------------------------------
+	std::vector<int> gen_sequence(int size, int max_number)
+	{
+		std::vector<int> ret(size);
+		for(int i = 0; i < size; i++)
+			ret[i] = i % max_number;
+		return ret;
+	}
+	//--------------------------------------------------------------------------
 	void InitTask(AnsiString Path) override {
+        randomize();
+		std::srand(time(NULL));
+
 		state = INSTRUCTION;
 		TrialCount = 0;
-		memset(array,0, sizeof(int)*7);
-		memset(complexity_count,0, sizeof(int)*3);
-		memset(samples_count,0, sizeof(int)*2);
 
         ButtonYes->SetPosition(int(Form->Width) / 5, (int(Form->Height) / 4) * 3);
 		ButtonNo->SetPosition((int(Form->Width) / 5)*4,(int(Form->Height) / 4) * 3);
-	}
 
-	bool Finished() override {
+
+		int trial_per_comp = Settings->getInt(MaxTrialPerCmplexity);
+		int symbol_count = Settings->getInt(MaxSymbolCount);
+		std::vector<int> complexity_list = str_to_vecint(AnsiString(Settings->get(Complexity)).c_str(), ",");
+
+		int trial_count = trial_per_comp*complexity_list.size()*2;
+
+		std::vector<int> targeted = gen_sequence(trial_count, 2);
+		std::vector<int> complexity(trial_count);
+
+		for(int i = 0; i < trial_count; i++) complexity[i] = complexity_list[i%complexity_list.size()];
+
+		std::random_shuffle(targeted.begin(), targeted.end());
+		std::random_shuffle(complexity.begin(), complexity.end());
+
+		_samples.clear();
+		_samples.resize(trial_count);
+		for(int i = 0; i < _samples.size(); i++)
+		{
+			Sample sample;
+			sample.targeted = targeted[i];
+			sample.complexity = complexity[i];
+
+			std::vector<int> numbers = get_unique_numbers(symbol_count, 10,99);
+			set_complexity(numbers, complexity[i]);
+
+			sample.numbers = numbers;
+			sample.number = (targeted[i] == 0) ? get_ungoal_number(numbers) : get_goal_number(numbers);
+			_samples[i] = sample;
+		}
+	}
+    //--------------------------------------------------------------------------
+	bool Finished() override
+	{
 		if(Settings->getInt(Enable) == 0)
 			return true;
 
-		if(TrialCount >= Settings->getInt(TrialMax)*3)
+		if(TrialCount >= _samples.size())
 		{
          InitTask("");
 		 return true;
@@ -461,101 +547,53 @@ public:
 		else
 			return false;
 	}
-
-	bool isEnable() override {
+	//--------------------------------------------------------------------------
+	bool isEnable() override
+	{
       return (bool) Settings->getInt(Enable);
 	}
-
+	//--------------------------------------------------------------------------
 	void CloseTask() override
 	{
 
 	}
+	//--------------------------------------------------------------------------
+	void set_complexity(std::vector<int>& array, int complexity)
+	{
+		std::vector<int> indexes = gen_sequence(array.size(), array.size());
+		std::random_shuffle(indexes.begin(), indexes.end());
 
-	int calc_complexity()
-	{
-		int complexity_value[3] = {2,4,7};
-		int n1;
-		do
-		{
-			n1 = RandomRange(0,3);
-		}
-		while(complexity_count[n1] == Settings->getInt(TrialMax));
-		complexity_count[n1]++;
-        return complexity_value[n1];
+		for(int i = 0; i < array.size() - complexity; i++)
+			array[indexes[i]] = 0;
 	}
-	int find_element(int array[], int size, int value)
+	//--------------------------------------------------------------------------
+	std::vector<int> get_unique_numbers(int size, int begin, int end)
 	{
-       for(int i = 0; i < size; i++)
-	   {
-		  if(array[i] == value)
-		  {
-			  return 1;
-		  }
-	   }
-       return 0;
+		 std::vector<int> numbers(end-begin);
+		 for(int i = 0; i < numbers.size(); i++) numbers[i] = begin+i;
+		 std::random_shuffle(numbers.begin(), numbers.end());
+
+		 std::vector<int> ret(size);
+		 std::copy(numbers.begin(),numbers.begin()+size, ret.begin());
+         return ret;
 	}
 
-	void get_unique_numbers(int array[], int size, int AFrom, int ATo)
+	int get_goal_number(const std::vector<int>& array)
 	{
-		int counter = 0;
-		do
-		{
-		   int n1 = RandomRange(AFrom, ATo);
-		   if(!find_element(array,size,n1))
-		   {
-			  array[counter] = n1;
-			  counter++;
-		   }
-		}
-		while(counter < size);
+		std::vector<int> numbers = array;
+		numbers.erase(std::remove(numbers.begin(), numbers.end(), 0), numbers.end());
+		int item =  std::rand() % numbers.size();
+		return numbers[item];
 	}
 
-	void generate_numbers(int array[])
+	int get_ungoal_number(const std::vector<int>& array)
 	{
-		int complexity = calc_complexity();
-		int *array_number = new int[complexity];
-		get_unique_numbers(array_number,complexity,10,100);
-		int *array_places = new int[complexity];
-		memset(array_places,-1, sizeof(int)*complexity);
-		get_unique_numbers(array_places,complexity,0,7);
-		for(int i = 0; i < complexity; i++)
-		{
-		   array[array_places[i]] = array_number[i];
-        }
-		delete[] array_places;
-		delete[] array_number;
-	}
-
-	int get_sample_type()
-	{
-		int n1;
-		do
-		{
-			n1 = RandomRange(0,2);
-		}
-		while(samples_count[n1] == (3*Settings->getInt(TrialMax))/2);
-		samples_count[n1]++;
-		return n1;
-	}
-
-	int get_sample()
-	{
-		int n1 = 0;
-		int type = get_sample_type();
-		if(type == 0)
-		{
-			do
-				n1 = RandomRange(10,100);
-			while(!find_element(array,7,n1));
-		}
-		else
-		{
-			do
-				n1 = RandomRange(10,100);
-			while(find_element(array,7,n1));
-		}
-        Trial->Stimul = n1;
-		return n1;
+		 while(true)
+		 {
+			 int number = RandomRange(10,100);
+			 if(std::find(array.begin(), array.end(), number) == array.end())
+				return number;
+         }
 	}
 
 	void StateManager() override
@@ -583,19 +621,19 @@ public:
 				#endif
 				break;
 			case NUMBERS:
+			{
 				ClearCanva();
-                memset(array,0, sizeof(int)*7);
-				generate_numbers(array);
-				DrawSymbols(array,124);
+				std::vector<std::string> varray(_samples[TrialCount].numbers.size());
+				for(int i = 0; i < varray.size(); i++) varray[i] = (_samples[TrialCount].numbers[i] == 0 ? "*" : std::to_string(_samples[TrialCount].numbers[i]));
+				DrawSymArray(varray);
 				Timer->Interval = Settings->getRandFromRange(RangeStimul);
 				state = BLANK;
                 #ifdef PROTOCOL_LOGGER
 					Trial->StateTime[NUMBERS] = millis();
-					for(int i = 0; i < 7; i++) {
-						Trial->varray.push_back(array[i]);
-                    }
+					Trial->varray = _samples[TrialCount].numbers;
 				#endif
 				break;
+            }
 			case BLANK:
 				ClearCanva();
 				Timer->Interval  = Settings->getRandFromRange(RangeBackground);
@@ -610,14 +648,13 @@ public:
 				Timer->Interval = Settings->getRandFromRange(RangePlus);
 				state = SAMPLE;
                 #ifdef PROTOCOL_LOGGER
-					Trial = OwnProtocol->CreateTrial();
 					Trial->StateTime[PLUS2] = millis();
 				#endif
 				break;
 			case SAMPLE:
 			{
                 ClearCanva();
-				DrawOneNumber(get_sample());
+				DrawOneNumber(_samples[TrialCount].number);
 
 				ButtonYes->Draw();
 				ButtonNo->Draw();
@@ -625,6 +662,7 @@ public:
 				Timer->Interval = 0;
 				state = CLICK;
                 #ifdef PROTOCOL_LOGGER
+					Trial->Stimul = _samples[TrialCount].number;
 					Trial->StateTime[SAMPLE] = millis();
 				#endif
 				break;
@@ -667,6 +705,7 @@ public:
 				 ButtonYes->Draw();
 				 state = BLANK2;
 				 Timer->Interval = 500;
+                 Trial->user_choice = 1;
 				}
 
 				if(ButtonNo->Contains(X,Y))
@@ -675,14 +714,14 @@ public:
 				 ButtonNo->Draw();
 				 state = BLANK2;
 				 Timer->Interval = 500;
+                 Trial->user_choice = 0;
 				}
 
-				/*
 				#ifdef PROTOCOL_LOGGER
 					Trial->StateTime[CLICK] = millis();
 					Trial->Click = {X, Y, millis(), 0};
 				#endif
-				*/
+
             }
 		 }
 	}
@@ -690,9 +729,7 @@ private:
 	State state;
     State old_state;
     int TrialCount = 0;
-	int array[7] = {0};
-	int complexity_count[3] = {0};
-	int samples_count[2] = {0};
+    std::vector<Sample> _samples;
 
 	DProtocol* OwnProtocol;
 	DProtocol::Trial* Trial;
@@ -707,10 +744,11 @@ class TMentalArithmeticBlock : public TBaseTask
 public:
 	enum SettingsName : int
 	{
-		Enable = 0,
-		TrialMax = 1,
-		RangeBackground = 2,
-		RangePlus = 3,
+		Enable,
+		TrialMax,
+		Complexity,
+		RangeBackground,
+		RangePlus,
 	};
 	enum State
 	{
@@ -722,13 +760,22 @@ public:
 		Size
 	};
 
+	struct Sample
+	{
+		// X-N = R+-d
+		int X;
+		int N;
+		int R;
+    };
+
 	// Описание для протокола --------------------------------------------------
 	struct DProtocol : ProtocolBase
 	{
 		struct Trial
 		{
 			unsigned int StateTime[State::Size] = {0};
-            ClickInfo Click;
+			ClickInfo Click;
+            int user_choice = -1;
 			int X = 0, N = 0, R = 0;
 		};
 		std::vector<std::shared_ptr<Trial>> Trials;
@@ -752,7 +799,8 @@ public:
 	{
 		if(!Settings->Load(_parent->GetTaskName())){
 			Settings->Add(Enable, "Включить", GuiType::TCheckBox , 1);
-			Settings->Add(TrialMax, "Триалы", GuiType::TEdit, 8);
+			Settings->Add(TrialMax, "Триалов на сложность", GuiType::TEdit, 8);
+            Settings->Add(Complexity, "N: (X-N=+-d)", GuiType::TEdit, "1,2,3");
 			Settings->Add(RangePlus, "Крест", GuiType::TRange, "1000:1500");
 			Settings->Add(RangeBackground, "Фон", GuiType::TRange, "1000:1500");
 			Settings->Save(_parent->GetTaskName());
@@ -768,63 +816,96 @@ public:
 	   delete ButtonNo;
 	}
 	//--------------------------------------------------------------------------
+	std::vector<int> str_to_vecint(const char* str, std::string delim)
+	{
+		TStringDynArray data = SplitString(str,delim.c_str());
+		std::vector<int> vec(data.size());
+		for(int i = 0; i < data.size(); i++) vec[i] = data[i].ToInt();
+		return vec;
+	}
+	//--------------------------------------------------------------------------
+	std::vector<int> gen_sequence(int size, int max_number)
+	{
+		std::vector<int> ret(size);
+		for(int i = 0; i < size; i++)
+			ret[i] = i % max_number;
+		return ret;
+	}
+	//--------------------------------------------------------------------------
 	void InitTask(AnsiString Path) override {
+        randomize();
+		std::srand(time(NULL));
+
 		state = INSTRUCTION;
 		TrialCount = 0;
-		calc_complexity();
-		calc_samples_queue();
 
         ButtonYes->SetPosition(int(Form->Width) / 5, (int(Form->Height) / 4) * 3);
 		ButtonNo->SetPosition((int(Form->Width) / 5)*4,(int(Form->Height) / 4) * 3);
+
+		std::vector<int> complexity_list = str_to_vecint(AnsiString(Settings->get(Complexity)).c_str(), ",");
+
+		int trial_count = Settings->getInt(TrialMax)*complexity_list.size()*2;
+
+		std::vector<int> targeted = gen_sequence(trial_count, 2);
+		std::vector<int> complexity(trial_count);
+
+		for(int i = 0; i < trial_count; i++) complexity[i] = complexity_list[i%complexity_list.size()];
+
+		std::random_shuffle(targeted.begin(), targeted.end());
+		std::random_shuffle(complexity.begin(), complexity.end());
+
+		_samples.resize(trial_count);
+		for(int i = 0; i < _samples.size(); i++)
+		{
+			// Generate Equation
+			int X = RandomRange(10,100);
+			int N = complexity[i];
+			int R = X-N;
+			if(targeted[i] == 0) // не целевая проба
+			{
+				while(true)
+				{
+					int d = RandomRange(1,3);
+					int sign = RandomRange(0,2);
+					int ans = (sign == 0) ? (R - d) : (R + d);
+					if(X>ans)
+					{
+                        R = ans;
+						break;
+					}
+				}
+			}
+
+			Sample sample;
+			sample.N = N;
+			sample.R = R;
+			sample.X = X;
+			_samples[i] = sample;
+        }
 	}
 	//--------------------------------------------------------------------------
 	bool Finished() override {
 		if(Settings->getInt(Enable) == 0) return true;
-		if(TrialCount >= Settings->getInt(TrialMax)*3){
+		if(TrialCount >= _samples.size())
+		{
          InitTask("");
 		 return true;
 		}
 		else return false;
 	}
 	//-------------------------------------------------------------------------
-	bool isEnable() override {
+	bool isEnable() override
+	{
       return (bool) Settings->getInt(Enable);
 	}
 
 	void CloseTask() override {}
 	//--------------------------------------------------------------------------
-	void calc_complexity()
-	{
-	   complexity.clear();
-	   for(int i = 0; i < Settings->getInt(TrialMax)*3; i++) {
-		complexity.push_back((i%3)+1);
-	   }
-	   std::shuffle(complexity.begin(), complexity.end(), std::random_device());
-	}
-	//--------------------------------------------------------------------------
-	void calc_samples_queue()
-	{
-		samples_queue.clear();
-		for(int i = 0; i < Settings->getInt(TrialMax)*3; i++) {
-           samples_queue.push_back(i%2);
-		}
-        std::shuffle(samples_queue.begin(), samples_queue.end(), std::random_device());
-	}
 
-	UnicodeString GetEquation()
+	UnicodeString GetEquation(Sample& sample)
 	{
-		int X  = RandomRange(10,100);
-		int d = RandomRange(0,4);
-		int sign = RandomRange(0,2);
-		int N = complexity[TrialCount];
-		int R = X - N;
-		if(samples_queue[TrialCount] == 0) {
-			R = (sign == 0) ? R - d : R + d;
-        }
-		#ifdef PROTOCOL_LOGGER
-			Trial->X = X; Trial->N = N; Trial->R = R;
-		#endif
-        return IntToStr(X)+"-"+IntToStr(N)+"="+IntToStr(R);
+		Trial->X = sample.X; Trial->R = sample.R; Trial->N = sample.N;
+		return IntToStr(sample.X)+"-"+IntToStr(sample.N)+"="+IntToStr(sample.R);
 	}
 
 	void StateManager() override
@@ -852,7 +933,7 @@ public:
 				break;
 			case EQUATION:
 				ClearCanva();
-				DrawText(GetEquation(),220);
+				DrawText(GetEquation(_samples[TrialCount]),220);
 				ButtonYes->Draw();
 				ButtonNo->Draw();
 				state = CLICK;
@@ -862,6 +943,9 @@ public:
 				break;
 		   case BLANK:
 				ClearCanva();
+				ButtonYes->SetFillColor(TAlphaColors::Black);
+				ButtonNo->SetFillColor(TAlphaColors::Black);
+
 				Timer->Interval = Settings->getRandFromRange(RangeBackground);
                 state = PLUS;
 				TrialCount++;
@@ -879,6 +963,7 @@ public:
 		 {
 			if(old_state == INSTRUCTION){
 				state = PLUS;
+                StateManager();
 			} else {
 
 				if(ButtonYes->Contains(X,Y))
@@ -887,6 +972,7 @@ public:
 				 ButtonYes->Draw();
 				 state = BLANK;
 				 Timer->Interval = 500;
+                 Trial->user_choice = 1;
 				}
 
 				if(ButtonNo->Contains(X,Y))
@@ -895,16 +981,15 @@ public:
 				 ButtonNo->Draw();
 				 state = BLANK;
 				 Timer->Interval = 500;
+                 Trial->user_choice = 0;
 				}
-				/*
+
 				#ifdef PROTOCOL_LOGGER
 					Trial->StateTime[CLICK] = millis();
 					Trial->Click = {X, Y, millis(), 0};
 				#endif
-                */
-            }
 
-			StateManager();
+            }
 		 }
 	}
 
@@ -916,6 +1001,8 @@ private:
 	std::vector<int> samples_queue;
 	DProtocol* OwnProtocol;
 	DProtocol::Trial* Trial;
+
+    std::vector<Sample> _samples;
 
 	TDrawButton* ButtonYes;
 	TDrawButton* ButtonNo;
@@ -987,12 +1074,15 @@ public:
     }
     //--------------------------------------------------------------------------
 	void InitTask(AnsiString Path) override {
+        randomize();
+		std::srand(time(NULL));
+
 		state = INSTRUCTION;
 		TrialCount = 0;
 		complexity_index = 0;
         complexity.clear();
 		std::vector<int> _complexity{1, 2, 3};
-		srand(time(NULL));
+
 		for(int i = 0; i < 3; i++) {
 			std::random_shuffle(begin(_complexity), end(_complexity));
 			complexity.insert(end(complexity), begin(_complexity), end(_complexity));
@@ -1002,18 +1092,22 @@ public:
 		hint->SetPosition(Form->Width - 200,Form->Height - 100);
 	}
 	//--------------------------------------------------------------------------
-	bool Finished() override {
+	bool Finished() override
+	{
 		if(Settings->getInt(Enable) == 0) return true;
-		if(TrialCount >= 25) {
+		if(TrialCount >= 25 && state != CLICK)
+		{
 		 TrialCount = 0;
          complexity_index++;
-         state = INSTRUCTION;
+		 state = INSTRUCTION;
+         hint->Hide();
 		 return true;
 		}
 		else return false;
 	}
 	//--------------------------------------------------------------------------
-	bool isEnable() override {
+	bool isEnable() override
+	{
       return (bool) Settings->getInt(Enable);
 	}
     //--------------------------------------------------------------------------
@@ -1059,11 +1153,11 @@ public:
 				ClearCanva();
 				hint->Draw();
 				select_obj.isSelected = false;
-				srand(time(NULL));
 				std::random_shuffle(begin(array), end(array));
 				table_objects = DrawTable(array.data(),array.size());
 				Timer->Interval = 0;
 				state = CLICK;
+
 				TrialCount++;
 				#ifdef PROTOCOL_LOGGER
 					Trial = OwnProtocol->CreateTrial();
@@ -1072,13 +1166,28 @@ public:
 				#endif
 				break;
 			case CLICK:
+			{
                 if(select_obj.isSelected)
 				{
                     select_obj.isSelected = false;
 					HighlightObject(select_obj, TAlphaColors::Black);
+
+					ClearCanva();
+					std::random_shuffle(begin(array), end(array));
+					table_objects = DrawTable(array.data(),array.size());
+					hint->Draw();
                     Timer->Interval = 0;
 				}
+				if(hint->Visible())
+				{
+                    ClearCanva();
+					std::random_shuffle(begin(array), end(array));
+					table_objects = DrawTable(array.data(),array.size());
+					hint->Draw();
+					Timer->Interval = 0;
+                }
 				break;
+			}
 			default:
 				break;
 		}
@@ -1104,6 +1213,7 @@ public:
 				   if(table_objects[i].rect.Contains(System::Types::TPoint(X,Y)))
 				   {
 					  select_obj = table_objects[i];
+                      Trial->Click.numbers = select_obj.text.ToInt();
 					  if(TargetNumber == select_obj.text.ToInt())
 					  {
 						state = MATRIX;
@@ -1114,9 +1224,10 @@ public:
 					  }
 					  else
 					  {
+						hint->Show("Ищем "+IntToStr(TargetNumber)+"\n Отнимаем "+IntToStr(complN));
 						select_obj.isSelected = true;
 						HighlightObject(select_obj, TAlphaColors::Lightcoral);
-						Timer->Interval = 400;
+						Timer->Interval = 800;
 					  }
 					  break;
 				   }
@@ -1125,10 +1236,13 @@ public:
 				if(hint->Contains(X,Y))
 				{
 					hint->Show("Ищем "+IntToStr(TargetNumber)+"\n Отнимаем "+IntToStr(complN));
+                    Timer->Interval = 800;
                 }
 
-				//Trial->StateTime[CLICK] = millis();
-				//Trial->Click = {X, Y, millis(), 0};
+				Trial->StateTime[CLICK] = millis();
+				Trial->Click.X = X;
+				Trial->Click.Y = Y;
+				Trial->Click.time = millis();
 
             }
 		 }
@@ -1167,7 +1281,9 @@ public:
 		 BACKGROUND,
 		 RUN_BLOCK,
 		 PAUSE,
-         Size
+		 Size,
+		 END,
+         FINISHED
 	} state;
 
 	// Описание для протокола

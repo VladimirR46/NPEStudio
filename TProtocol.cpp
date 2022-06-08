@@ -426,7 +426,7 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, mxCreateDoubleScalar(trial->X));
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mxCreateDoubleScalar(trial->N));
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(trial->R));
-			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*3+j, mxCreateDoubleScalar(trial->Click.numbers));
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*3+j, mxCreateDoubleScalar(trial->user_choice));
 
 		}
 		mxSetField(block, 0, fieldnames[1], timeline);
@@ -467,7 +467,7 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, array);
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mxCreateDoubleScalar(trial->Stimul));
-			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(0));
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(trial->user_choice));
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*3+j, mxCreateDoubleScalar(trial->ResponseTimeOut));
 		}
 
@@ -505,7 +505,7 @@ void TProtocol::SaveECFTask(MATFile *pmat)
 
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*0+j, mxCreateDoubleScalar(trial->number));
 			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*1+j, mat);
-			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(0));
+			mxSetCell(stimuls_cell,mxGetM(stimuls_cell)*2+j, mxCreateDoubleScalar(trial->user_choice));
 		}
 
 

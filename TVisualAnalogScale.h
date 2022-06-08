@@ -49,7 +49,7 @@ public:
 	void __fastcall TextMouseLeave(TObject *Sender);
     void __fastcall TimerEvent(TObject *Sender);
 
-	void Init(std::vector<VASTypes> types);
+	void Init(std::vector<VASTypes> types, UnicodeString vasMentalTitle);
 	void Run();
 
     ~TVisualAnalogScale();
@@ -57,7 +57,6 @@ public:
 private:
     TTimer* timer;
 	TNotifyEvent OnFinishedEvent;
-
 
 	int vasIndex = 0;
 

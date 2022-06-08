@@ -39,6 +39,7 @@ void __fastcall TForm3::SaveIDESettings()
 		 }
 
 		 // Lsl threads name
+         o->AddPair( new TJSONPair("LslTimeStampType", cbTimeStamp->ItemIndex) );
 		 o->AddPair( new TJSONPair("HideLslWin",cbHideLslWin->IsChecked) );
 		 o->AddPair( new TJSONPair("StopLslRec",cbStopLslRec->IsChecked) );
 
@@ -92,6 +93,7 @@ void __fastcall TForm3::LoadIDESettings()
 		}
 
 		// Lsl threads name
+		cbTimeStamp->ItemIndex = o->Values["LslTimeStampType"]->AsType<int>();
 		cbHideLslWin->IsChecked = o->Values["HideLslWin"]->AsType<bool>();
 		cbStopLslRec->IsChecked = o->Values["StopLslRec"]->AsType<bool>();
 

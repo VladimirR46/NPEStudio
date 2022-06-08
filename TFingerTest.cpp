@@ -16,9 +16,12 @@ TFingerTest::TFingerTest(AnsiString _name)
 {
 	if(!Settings->Load(_name)){
 		Settings->Add(PathToImage, "Путь к картинкам", GuiType::TDirectoryPath, "");
-        Settings->Add(TrialMax, "Количество триалов", GuiType::TEdit, 1);
+		Settings->Add(TrialMax, "Количество триалов", GuiType::TEdit, 1);
 		Settings->Add(RangeNoise, "Шум", GuiType::TRange, "3000:5000");
 		Settings->Add(RangeImage, "Картинка", GuiType::TRange, "1000:1500");
+		Settings->Add(BACKGROUND1, "Фон начало", GuiType::TEdit, "2000");
+		Settings->Add(BACKGROUND2, "Фон конец", GuiType::TEdit, "2000");
+
 		Settings->Save(_name);
 	}
 
@@ -39,15 +42,21 @@ bool TFingerTest::LoadImages()
 		return false;
     }
 
-	for(int i = 0; i < list.size(); i++)
+	images.clear();
+	srand(time(NULL));
+	for(int i = 0; i < Settings->getInt(TrialMax); i++)
 	{
-		TrialImage image(std::make_shared<TBitmap>(), ExtractFileName(list[i]));
-		image.Image->LoadFromFile(list[i]);
-		images.push_back(image);
+		std::vector<TrialImage> images_in_block;
+		for(int j = 0; j < list.size(); j++)
+		{
+			TrialImage image(std::make_shared<TBitmap>(), ExtractFileName(list[j]));
+			image.Image->LoadFromFile(list[j]);
+			images_in_block.push_back(image);
+		}
+		std::random_shuffle(begin(images_in_block), end(images_in_block));
+		images.insert(images.end(), images_in_block.begin(), images_in_block.end());
 	}
 
-    srand(time(NULL));
-	std::random_shuffle(begin(images), end(images));
 
     return true;
 }
@@ -58,7 +67,7 @@ void TFingerTest::InitTask(AnsiString Path)
 	DrawNoise(ImageNoise);
 
 	TrialCount = 0;
-	state = INSTRUCTION;
+	state = BEGIN;
 	isFinished = false;
 
 	LoadImages();
@@ -70,11 +79,11 @@ void TFingerTest::InitTask(AnsiString Path)
 void TFingerTest::StateManager()
 {
 	switch(state) {
-		case INSTRUCTION:
+		case BEGIN:
 		{
 			ClearCanva(TAlphaColorRec::White);
-			DrawText("Приготовьтесь.", 80, TAlphaColorRec::Black);
-			Timer->Interval = 2000;
+			DrawText("Отдых\n Оставляйте глаза открытыми", 66, 100, TAlphaColorRec::Black);
+			Timer->Interval = Settings->getInt(BACKGROUND1);
 			Timer->Enabled = true;
 			state = NOISE;
 			break;
@@ -104,11 +113,11 @@ void TFingerTest::StateManager()
 			TrialCount++;
 			break;
 		}
-		case CONCLUSION:
+		case END:
 		{
 			ClearCanva(TAlphaColorRec::White);
-			DrawText("Спасибо за участие!", 80, TAlphaColorRec::Black);
-			Timer->Interval = 2000;
+			DrawText("Отдых\n Оставляйте глаза открытыми", 66, 100, TAlphaColorRec::Black);
+			Timer->Interval = Settings->getInt(BACKGROUND2);
 			isFinished = true;
 			break;
         }
@@ -119,8 +128,8 @@ void TFingerTest::StateManager()
 //-----------------------------------------------------------------------------
 bool TFingerTest::Finished()
 {
-	if(TrialCount == images.size()*Settings->getInt(TrialMax)) {
-        state = CONCLUSION;
+	if(TrialCount == images.size()) {
+        state = END;
 	}
 
 	return isFinished;

@@ -124,7 +124,7 @@ void __fastcall TVisualAnalogScale::TextMouseLeave(TObject *Sender)
    rectangle->Fill->Color = TAlphaColorRec::Black;
 }
 //------------------------------------------------------------------------------
-void TVisualAnalogScale::Init(std::vector<VASTypes> types)
+void TVisualAnalogScale::Init(std::vector<VASTypes> types, UnicodeString vasMentalTitle)
 {
    vasIndex = 0;
    vasQueue.clear();
@@ -134,7 +134,7 @@ void TVisualAnalogScale::Init(std::vector<VASTypes> types)
 		VAS vas_test;
 
 		if(types[i] == vasMental){
-		   vas_test.text = "Ментальная усталость";
+		   vas_test.text = vasMentalTitle;
 		   vas_test.type = vasMental;
 		}
 		if(types[i] == vasPhysical){

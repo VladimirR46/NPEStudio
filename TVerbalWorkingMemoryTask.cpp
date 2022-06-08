@@ -23,21 +23,20 @@ TVerbalWorkingMemory::TVerbalWorkingMemory(AnsiString _name)
 	if(!Settings->Load(_name)){
 		Settings->Add(MaxBlockCount, "Количество блоков", GuiType::TEdit, "1");
 		Settings->Add(MaxTrialPerCmplexity, "Триалов на сложность и пробы", GuiType::TEdit, "1");
-		Settings->Add(MaxSymbolCount, "Кол. символов", GuiType::TEdit, "8");
-		Settings->Add(Complexity, "Уровни сложности", GuiType::TEdit, "2,3,4,5,6,7,8");
+		Settings->Add(MaxSymbolCount, "Кол. символов", GuiType::TEdit, "7");
+		Settings->Add(Complexity, "Уровни сложности", GuiType::TEdit, "2,3,4,5,6,7");
 
-		Settings->Add(BeginTime, "Начало (Фон)", GuiType::TEdit, "1000");
-		Settings->Add(CrossTimeRange, "Крест", GuiType::TRange, "1000:2000");
-		Settings->Add(SymbolsTimeRange, "Символы", GuiType::TRange, "1000:2000");
-		Settings->Add(RestTimeRange, "Пауза", GuiType::TRange, "1000:2000");
-		Settings->Add(SymbolTimeRange, "Проба", GuiType::TRange, "1000:2000");
-		Settings->Add(Rest2TimeRange, "Отдых", GuiType::TRange, "1000:2000");
-		Settings->Add(EndTime, "Конец  (Фон)", GuiType::TEdit, "1000");
+		Settings->Add(BeginTime, "Начало (Фон)", GuiType::TEdit, "180000");
+		Settings->Add(CrossTimeRange, "Крест", GuiType::TRange, "1500:2500");
+		Settings->Add(SymbolsTimeRange, "Символы", GuiType::TRange, "1500:2500");
+		Settings->Add(RestTimeRange, "Пауза", GuiType::TRange, "3000:7000");
+		Settings->Add(SymbolTimeRange, "Проба", GuiType::TRange, "2000:2000");
+		Settings->Add(Rest2TimeRange, "Отдых", GuiType::TRange, "1500:1500");
+		Settings->Add(EndTime, "Конец  (Фон)", GuiType::TEdit, "180000");
 
 		Settings->Save(_name);
 	}
 
-    std::srand(time(NULL));
 }
 
 std::string vec_to_str(std::vector<std::string>& vec)
@@ -71,7 +70,10 @@ void TVerbalWorkingMemory::samples_to_lsl(std::vector<Sample>& samples, samples_
 
 void TVerbalWorkingMemory::InitTask(AnsiString Path)
 {
-     BlockCount = 0;
+	 randomize();
+	 std::srand(time(NULL));
+
+	 BlockCount = 0;
 	 TrialCount = 0;
 	 state = State::BEGIN;
 	 Timer->Enabled = true;
@@ -207,6 +209,7 @@ void TVerbalWorkingMemory::StateManager()
 		case State::CHARSET:
 		{
 			 ClearCanva();
+             DrawPoint(bitmap->Width-60, bitmap->Height-60, 20, TAlphaColorRec::White);
 			 //std::vector<std::string> list = {"ц","X","p","m","i","L","k","g"};
 			 DrawSymArray(sample_list[TrialCount].symbol_list);
 			 Timer->Interval = Settings->getRandFromRange(SymbolsTimeRange);
@@ -225,10 +228,12 @@ void TVerbalWorkingMemory::StateManager()
 		case State::CHAR:
 		{
 			 ClearCanva();
+             DrawPoint(bitmap->Width-60, bitmap->Height-60, 20, TAlphaColorRec::White);
 			 DrawText(sample_list[TrialCount].symbol.c_str(), 166, 1);
 			 Timer->Interval = Settings->getRandFromRange(SymbolTimeRange);
 			 state = State::REST2;
 			 lsl->sendSample(4);
+
 			 break;
 		}
 		case State::REST2:
@@ -244,7 +249,7 @@ void TVerbalWorkingMemory::StateManager()
 		{
              ClearCanva();
 			 Timer->Interval = 0;
-			 VAS->Init({vasMental});
+			 VAS->Init({vasMental},"Степень усталости");
 			 VAS->Run();
 			 break;
 		}
@@ -261,7 +266,7 @@ void TVerbalWorkingMemory::StateManager()
 		{
 			 ClearCanva();
 			 DrawText("Спасибо за участие!", 66, 100);
-			 Timer->Interval = 3000;
+			 Timer->Interval = 2000;
 			 state = State::FINISHED;
 			 lsl->sendSample(201);
 			 break;
@@ -306,6 +311,5 @@ void TVerbalWorkingMemory::CloseTask()
 {
     Timer->Enabled = false;
 	lsl->stop_rec();
-    Sleep(4000);
 	lsl->stop();
 }

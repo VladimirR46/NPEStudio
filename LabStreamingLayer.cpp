@@ -52,13 +52,30 @@ void TLabStreamingLayer::sendSample(std::string data)
     }
 }
 
+double TLabStreamingLayer::get_clock()
+{
+	   if(Form3->cbTimeStamp->ItemIndex == 0)
+	   {
+		 int64_t ns = std::chrono::nanoseconds(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+		 const auto ns_per_s = 1000000000;
+		 const auto seconds_since_epoch = std::lldiv(ns, ns_per_s);
+		 double clock = seconds_since_epoch.quot + static_cast<double>(seconds_since_epoch.rem) / ns_per_s;
+		 return clock;
+	   }
+	   else
+	   {
+           return lsl::local_clock();
+       }
+}
+
 void TLabStreamingLayer::sendSample(int data)
 {
    	if(outletSample)
 	{
 		float sample[1];
 		sample[0] = data;
-		outletSample->push_sample(sample);
+
+		outletSample->push_sample(sample, get_clock());
     }
 }
 
@@ -68,7 +85,7 @@ void TLabStreamingLayer::sendFeedback(float data)
 	{
 		float sample[1];
 		sample[0] = data;
-		outletFeedback->push_sample(sample);
+		outletFeedback->push_sample(sample, get_clock());
     }
 }
 

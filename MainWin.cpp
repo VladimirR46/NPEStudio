@@ -6,6 +6,7 @@
 #include "SettingsWin.h"
 #include <filesystem>
 #include <FMX.FontGlyphs.hpp>
+#include "TestsWin.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.fmx"
@@ -195,6 +196,70 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 	UnSetKeyHook();
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::RunTest(UnicodeString test_name)
+{
+	BOOL ok = TRUE;
+	PROCESS_INFORMATION pi = { };
+	STARTUPINFO si = { };
+	si.cb = sizeof(STARTUPINFO);
+	si.dwFlags = STARTF_USESTDHANDLES;
 
+	UnicodeString lrec = ExtractFilePath(ParamStr(0))+test_name;
+	UnicodeString lpCommandLine = L"";
+    DWORD dwCreationFlags = 0;
 
+	/* Start Proccess*/
+	ok = CreateProcess(
+		lrec.w_str(),
+		lpCommandLine.w_str(),
+		NULL,
+		NULL,
+		TRUE,
+		dwCreationFlags,
+		NULL,
+		NULL,
+		&si,
+		&pi);
+
+	if (ok == FALSE){
+		ShowMessage("Не удалось запустить запись");
+		return;
+	}
+
+	WaitForSingleObject(pi.hProcess,INFINITE);
+
+	AnsiString Path = "Tests";
+	CreateDir(Path);
+
+	Path = Path + "\\" + Form1->Edit3->Text + " " + Form1->Edit4->Text;
+	AnsiString timName = Now().FormatString("DD.MM.YYYY hh.nn.ss");
+	Path = Path + " " + timName;
+	CreateDir(Path);
+
+	UnicodeString fileName = "";
+	if(test_name == "NASA_TLI_PC.exe")
+		fileName = "Log_TLI.txt";
+	if(test_name == "MFI_PC.exe")
+		fileName = "MFI.txt";
+
+	CopyFileW(fileName.w_str(), UnicodeString(Path+"\\"+fileName).w_str(),true);
+	DeleteFile(fileName.w_str());
+
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Button8Click(TObject *Sender)
+{
+	if(ComboBox4->ItemIndex == 0) Form4->DDPM();
+	if(ComboBox4->ItemIndex == 1) Form4->IPAQ();
+	if(ComboBox4->ItemIndex == 2) Form4->FSS();
+	if(ComboBox4->ItemIndex == 3) Form4->EHI();
+
+	if(ComboBox4->ItemIndex == 4) { RunTest("NASA_TLI_PC.exe"); return; }
+	if(ComboBox4->ItemIndex == 5) { RunTest("MFI_PC.exe");  return; }
+
+	if(ComboBox4->ItemIndex == 6) Form4->Poll();
+
+	Form4->ShowModal();
+}
+//---------------------------------------------------------------------------
 

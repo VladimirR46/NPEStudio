@@ -39,7 +39,6 @@ class TForm1 : public TForm
 {
   __published: // IDE-managed Components
     TComboBox* ComboBox1;
-    TLabel* Label1;
     TMainMenu* MainMenu1;
     TMenuItem* MenuItem1;
     TMenuItem* MenuItem2;
@@ -86,6 +85,10 @@ class TForm1 : public TForm
 	TButton *Button7;
 	TAniIndicator *AniIndicator1;
 	TStatusBar *StatusBar1;
+	TGroupBox *GroupBox1;
+	TGroupBox *GroupBox2;
+	TComboBox *ComboBox4;
+	TButton *Button8;
     void __fastcall ComboBox1Change(TObject* Sender);
 	void __fastcall MenuItem3Click(TObject *Sender);
 	void __fastcall MenuItem5Click(TObject *Sender);
@@ -98,6 +101,7 @@ class TForm1 : public TForm
           TShiftState Shift);
 	void __fastcall Button7Click(TObject *Sender);
 	void __fastcall FormDestroy(TObject *Sender);
+	void __fastcall Button8Click(TObject *Sender);
   private: // User declarations
 	TActiCHamp *actiCHamp;
 
@@ -105,6 +109,7 @@ class TForm1 : public TForm
 	__fastcall TForm1(TComponent* Owner);
 	void __fastcall SetKeyHook();
 	void __fastcall UnSetKeyHook();
+	void __fastcall RunTest(UnicodeString test_name);
   TTriggerBox *triggerbox;
 };
 //---------------------------------------------------------------------------

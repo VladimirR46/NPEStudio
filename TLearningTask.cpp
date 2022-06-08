@@ -147,8 +147,8 @@ bool TLearningTask::Questions()
 		case QuestionState::VAS:
 		{
 			ClearCanva(TAlphaColorRec::Black);
-			if(QTrialCount == 0) VAS->Init({vasMental,vasPhysical});
-			if(QTrialCount > 0) VAS->Init({vasMental,vasPhysical,vasBoredom,vasEffort});
+			if(QTrialCount == 0) VAS->Init({vasMental,vasPhysical},"Ментальная усталость");
+			if(QTrialCount > 0) VAS->Init({vasMental,vasPhysical,vasBoredom,vasEffort},"Ментальная усталость");
 			VAS->Run();
 
             Timer->Interval = 0;
@@ -262,8 +262,8 @@ bool TLearningTask::Testing()
         case TestingState::VAS:
 		{
 			ClearCanva(TAlphaColorRec::Black);
-			if(TTrialCount == 0) VAS->Init({vasMental,vasPhysical});
-			if(TTrialCount > 0) VAS->Init({vasMental,vasPhysical,vasBoredom,vasEffort});
+			if(TTrialCount == 0) VAS->Init({vasMental,vasPhysical},"Ментальная усталость");
+			if(TTrialCount > 0) VAS->Init({vasMental,vasPhysical,vasBoredom,vasEffort},"Ментальная усталость");
 			VAS->Run();
 
             Timer->Interval = 0;
@@ -536,7 +536,7 @@ void TLearningTask::StateManager()
 			ClearCanva();
 			DrawText("Спасибо за участие!",66);
 			state = FINISHED;
-			Timer->Interval = 10000;
+			Timer->Interval = 5000;
 			break;
 		}
 		default:
@@ -547,7 +547,7 @@ void TLearningTask::StateManager()
 bool TLearningTask::Finished()
 {
 	if(state == FINISHED) {
-        Timer->Enabled = false;
+		Timer->Enabled = false;
 		return true;
 	}
 	return false;
